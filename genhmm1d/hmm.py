@@ -2858,3 +2858,61 @@ def GofHMMGen(y, reg, family, max_iter=10000, eps=10e-4, B=100, ntrial=0):
     
     return(pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM) 
 
+
+
+
+
+
+def ForecastHMMeta(ynew, family, theta, Q, eta):
+    
+    r = Q.shape[0]
+    p = theta.shape[1]
+    n = len(ynew)
+    etanew = np.zeros((n, r))
+    
+    for j in range(r):
+        for l in range(r):
+            etanew[0:n,j] = etanew[0:n,j] + eta[l] * Q[l,j]
+        etanew[0:n,j] = etanew[0:n,j] * PDF(family, ynew, theta[j,0:p])
+        
+    etanew = etanew/etanew.sum(axis=1)[:,None]
+    
+    return(etanew)
+
+
+
+
+def ForecastHMMPdf(y, family, theta, Q, eta, k=1):
+    
+    r = Q.shape[0]
+    p = theta.shape[1]
+    n = len(y)
+    pdf = np.zeros((n, len(k)))
+    
+    for d in range(len(k)):
+        Q_prime = np.linalg.matrix_power(Q, k[d])
+        for l in range(r):
+            for j in range(r):
+                pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * PDF(family, y, theta[l,0:p])
+
+    return(pdf)
+
+
+
+
+def ForecastHMMCdf(y, family, theta, Q, eta, k=1):
+    
+    r = Q.shape[0]
+    p = theta.shape[1]
+    n = len(y)
+    cdf = np.zeros((n, len(k)))
+    
+    for d in range(len(k)):
+        Q_prime = np.linalg.matrix_power(Q, k[d])
+        for l in range(r):
+            for j in range(r):
+                cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * CDF(family, y, theta[l,0:p])
+
+    return(cdf)
+
+
