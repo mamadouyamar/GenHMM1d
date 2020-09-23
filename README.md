@@ -127,9 +127,21 @@ print('pvalue = ', pvalue)
 ```
 
 
-## Contact
 
+## Contributing
+
+Please report any bugs to the program to mamadou.yamar.thioub@hec.ca, to do so, please follow these guidelines :
+* Use a clear and descriptive title for the issue to identify the problem.
+* Describe the exact steps necessary to reproduce the problem in as much detail as possible. Please do not just summarize what you did. Make sure to explain how you did it.
+*Provide the specific environment setup. Include the pip freeze output, specific environment variables, Python version, and other relevant information.
+*Provide specific examples to demonstrate the steps. Include links to files or GitHub projects, or copy/paste snippets which you use in those examples.
+
+
+
+## Contact
 Mamadou Yamar Thioub - [@MamadouYamar](https://twitter.com/MamadouYamar) - mamadou-yamar.thioub@hec.ca
 
 Project Link: [https://github.com/mamadouyamar/GenHMM1d](https://github.com/mamadouyamar/GenHMM1d)
+
+
 
