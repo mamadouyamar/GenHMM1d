@@ -26,6 +26,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     packages=['GenHMM1d'],
-    install_requires=['scipy','numpy','scipy.optimize','scipy.stats','joblib','multiprocessing','math'],
+    install_requires=['scipy','numpy','joblib','multiprocessing','math'],
     python_requires='>=3.6',
 )
