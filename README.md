@@ -38,7 +38,7 @@ import numpy as np
 from GenHMM1d import hmm 
 ```
 
-**To generate observations from a particular model, one need to specify the following quantities**
+** To generate observations from a particular model, one need to specify the following quantities**
 
 * Q ==> transition matrix
 * family ==> the name of the univariate distribution, see documentation (https://docs.scipy.org/doc/scipy/reference/stats.html)
@@ -83,7 +83,7 @@ plt.show()
 ```
 
 
-**Given the previously simulated serie y_norm, one could fit a two regimes HMM with **
+** Given the previously simulated serie y_norm, one could fit a two regimes HMM with **
 
 ```sh
 reg = 2  
@@ -96,7 +96,7 @@ print('BIC = ', BIC)
 print('cvm = ', cvm)
 ```
 
-**One could perform a goodness-of-fit test for the two regimes HMM norm with  **
+** One could perform a goodness-of-fit test for the two regimes HMM norm with  **
 
 ```sh
 reg = 2
@@ -111,7 +111,7 @@ print('pvalue = ', pvalue)
 ```
 
 
-**One could perform a goodness-of-fit test for the two regimes HMM binom with  **
+** One could perform a goodness-of-fit test for the two regimes HMM binom with  **
 
 ```sh
 reg = 2
@@ -133,8 +133,8 @@ print('pvalue = ', pvalue)
 Please report any bugs to the program to mamadou.yamar.thioub@hec.ca, to do so, please follow these guidelines :
 * Use a clear and descriptive title for the issue to identify the problem.
 * Describe the exact steps necessary to reproduce the problem in as much detail as possible. Please do not just summarize what you did.
-*Provide the specific environment setup. Include the pip freeze output, specific environment variables, Python version, and other relevant information.
-*Provide specific examples to demonstrate the steps. Include links to files or GitHub projects, or copy/paste snippets which you use in those examples.
+* Provide the specific environment setup. Include the pip freeze output, specific environment variables, Python version, and other relevant information.
+* Provide specific examples to demonstrate the steps. Include links to files or GitHub projects, or copy/paste snippets which you use in those examples.
 
 
 
