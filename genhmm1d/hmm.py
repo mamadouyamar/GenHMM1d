@@ -2713,7 +2713,7 @@ def Sn1d(U):
 
 ##=============================================================================
 
-def EstHMMGen(y, reg, family, max_iter, eps, ntrial=0):
+def EstHMMGen(y, reg, family, max_iter=10000, eps=10e-4, ntrial=0):
     
     ninit = 100
     n = len(y)
@@ -2821,7 +2821,7 @@ def EstHMMGen(y, reg, family, max_iter, eps, ntrial=0):
 
 
 
-def bootstrapfun(n, family, Q, theta, max_iter, eps, ntrial=0):
+def bootstrapfun(n, family, Q, theta, max_iter=10000, eps=10e-4, ntrial=0):
     
     y1, sim, MC = SimHMMGen(Q, family, theta, int(n), ntrial)
     
@@ -2840,7 +2840,7 @@ def bootstrapfun(n, family, Q, theta, max_iter, eps, ntrial=0):
 
 
 
-def GofHMMGen(y, reg, family, max_iter, eps, B, ntrial=0):
+def GofHMMGen(y, reg, family, max_iter=10000, eps=10e-4, B=100, ntrial=0):
 
     theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = EstHMMGen(
                                                                 y, reg, family, max_iter, eps, ntrial)
