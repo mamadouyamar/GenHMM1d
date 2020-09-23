@@ -42,7 +42,7 @@ from GenHMM1d import hmm
 **To generate observations from a particular model, one need to specify the following quantities**
 
 * Q ==> transition matrix
-* family ==> the name of the univariate distribution, see documentation (https://docs.scipy.org/doc/scipy/reference/stats.html)
+* family ==> the name of the univariate [distribution] (https://github.com/mamadouyamar/GenHMM1d/blob/master/distributions), see [documentation] (https://docs.scipy.org/doc/scipy/reference/stats.html) for the parameters.
 * n ==> number of observations to generate
 * ntrial ==> only for the binom and nbinom families
 
