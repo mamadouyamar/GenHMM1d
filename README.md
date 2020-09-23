@@ -5,10 +5,43 @@ Inference, goodness-of-fit tests, and predictions for continuous and discrete un
 
 ## Installation
 
+To install GenHMM1d simply run 
+```sh
+$ pip install git+https://github.com/mamadouyamar/GenHMM1d.git
+```
+
 
 ## Requirements
+GenHMM1d requires the following libraries 
+	- scipy 
+	- matplotlib.pyplot 
+	- numpy
+	- math
+	- scipy 
+	- joblib
+	- multiprocessing
+ 
+ When unavailable on your system, each of these package can be installed with the following command
 
+```sh
+$ pip install package_name
+```
 
 ## Usage
+
+Import the needed libraries for this example 
+
+```sh
+$ import scipy as sp
+$ import matplotlib.pyplot as plt
+$ import numpy as np
+$ from GenHMM1d import hmm 
+```
+
+
+
+
+
+
 
 
