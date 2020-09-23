@@ -38,7 +38,7 @@ import numpy as np
 from GenHMM1d import hmm 
 ```
 
-** To generate observations from a particular model, one need to specify the following quantities**
+**To generate observations from a particular model, one need to specify the following quantities**
 
 * Q ==> transition matrix
 * family ==> the name of the univariate distribution, see documentation (https://docs.scipy.org/doc/scipy/reference/stats.html)
@@ -83,7 +83,7 @@ plt.show()
 ```
 
 
-** Given the previously simulated serie y_norm, one could fit a two regimes HMM with **
+**Given the previously simulated serie y_norm, one could fit a two regimes HMM with **
 
 ```sh
 reg = 2  
@@ -96,7 +96,7 @@ print('BIC = ', BIC)
 print('cvm = ', cvm)
 ```
 
-** One could perform a goodness-of-fit test for the two regimes HMM norm with  **
+**One could perform a goodness-of-fit test for the two regimes HMM norm with  **
 
 ```sh
 reg = 2
@@ -111,7 +111,7 @@ print('pvalue = ', pvalue)
 ```
 
 
-** One could perform a goodness-of-fit test for the two regimes HMM binom with  **
+**One could perform a goodness-of-fit test for the two regimes HMM binom with  **
 
 ```sh
 reg = 2
@@ -127,7 +127,7 @@ print('pvalue = ', pvalue)
 ```
 
 
-** One could computed the predicted probabilities of the regimes for new observations (ynew) at time n+1, given observation up to time n **
+**One could computed the predicted probabilities of the regimes for new observations (ynew) at time n+1, given observation up to time n **
 
 ```sh
 ## We start by estimating the parameters of the model
@@ -146,7 +146,7 @@ print(forecastedprob)
 
 
 
-** One could computed the forecasted probability density function for observation (range_y) for the horizon (k), given observation up to time n **
+**One could computed the forecasted probability density function for observation (range_y) for the horizon (k), given observation up to time n **
 
 ```sh
 ## We start by estimating the parameters of the model
@@ -173,7 +173,7 @@ plt.show()
 
 
 
-** One could computed the forecasted cumulative distribution function for observation (range_y) for the horizon (k), given observation up to time n **
+**One could computed the forecasted cumulative distribution function for observation (range_y) for the horizon (k), given observation up to time n **
 
 ```sh
 ## We start by estimating the parameters of the model
