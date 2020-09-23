@@ -127,6 +127,23 @@ print('pvalue = ', pvalue)
 ```
 
 
+** One could computed the predicted probabilities of the regimes for a new observation (ynew) at time n+1, given observation up to time n **
+
+```sh
+## We start by estimating the parameters of the model
+
+reg = 2  
+family = 'norm' 
+theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
+
+## The selected values for which we are interested in the probability of the regime
+ynew = np.array([0.5, 0.7, 1, -1]) 
+
+## The forecasted probabilities
+forecastedprob = ForecastHMMeta(ynew, family, theta, Q, eta_EM[-1,0:reg])
+print(forecastedprob)
+```
+
 
 ## Contributing
 
