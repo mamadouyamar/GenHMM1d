@@ -6,6 +6,9 @@ Inference, goodness-of-fit tests, and predictions for continuous and discrete un
 ## Installation
 
 
+## Requirements
+
+
 ## Usage
 
 
