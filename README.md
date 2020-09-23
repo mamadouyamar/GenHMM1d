@@ -127,4 +127,9 @@ print('pvalue = ', pvalue)
 ```
 
 
+## Contact
+
+Mamadou Yamar Thioub - [@MamadouYamar](https://twitter.com/MamadouYamar) - mamadou-yamar.thioub@hec.ca
+
+Project Link: [https://github.com/mamadouyamar/GenHMM1d](https://github.com/mamadouyamar/GenHMM1d)
 
