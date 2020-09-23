@@ -13,17 +13,13 @@ $ pip install git+https://github.com/mamadouyamar/GenHMM1d.git
 
 ## Requirements
 GenHMM1d requires the following libraries 
-Markup : * Bullet list
-              * Nested bullet
-                  * Sub-nested bullet etc
-          * Bullet list item 2
-	- scipy 
-	- matplotlib.pyplot 
-	- numpy
-	- math
-	- scipy 
-	- joblib
-	- multiprocessing
+* scipy 
+* matplotlib.pyplot 
+* numpy
+* math
+* scipy 
+* joblib
+* multiprocessing
  
  When unavailable on your system, each of these package can be installed with the following command
 
