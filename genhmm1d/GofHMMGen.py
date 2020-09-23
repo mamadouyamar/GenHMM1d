@@ -11,7 +11,6 @@ import numpy as np
 import math
 from scipy.optimize import minimize
 import pandas as pd
-from functools import partial
 from joblib import Parallel, delayed
 import multiprocessing
 
