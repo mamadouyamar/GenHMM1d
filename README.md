@@ -189,7 +189,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedpdf = hmm.ForecastHMMCdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+forecastedcdf = hmm.ForecastHMMCdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
 plt.plot(range_y, forecastedcdf[0:len(range_y),0])
 plt.plot(range_y, forecastedcdf[0:len(range_y),1])
 plt.plot(range_y, forecastedcdf[0:len(range_y),2])
