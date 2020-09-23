@@ -140,7 +140,7 @@ theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = h
 ynew = np.array([0.5, 0.7, 1, -1]) 
 
 ## The forecasted probabilities
-forecastedprob = ForecastHMMeta(ynew, family, theta, Q, eta_EM[-1,0:reg])
+forecastedprob = hmm.ForecastHMMeta(ynew, family, theta, Q, eta_EM[-1,0:reg])
 print(forecastedprob)
 ```
 
@@ -162,7 +162,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedpdf = ForecastHMMPdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+forecastedpdf = hmm.ForecastHMMPdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
 plt.plot(range_y, forecastedpdf[0:len(range_y),0])
 plt.plot(range_y, forecastedpdf[0:len(range_y),1])
 plt.plot(range_y, forecastedpdf[0:len(range_y),2])
@@ -189,7 +189,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedpdf = ForecastHMMCdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+forecastedpdf = hmm.ForecastHMMCdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
 plt.plot(range_y, forecastedcdf[0:len(range_y),0])
 plt.plot(range_y, forecastedcdf[0:len(range_y),1])
 plt.plot(range_y, forecastedcdf[0:len(range_y),2])
