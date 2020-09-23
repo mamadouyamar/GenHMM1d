@@ -7,8 +7,8 @@ Created on Tue Sep 22 20:43:42 2020
 import setuptools
 
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open('README') as f:
+    long_description = ''.join(f.readlines())
 
 
 setuptools.setup(
