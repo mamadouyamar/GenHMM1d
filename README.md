@@ -21,7 +21,7 @@ GenHMM1d requires the following libraries
 * joblib
 * multiprocessing
  
- When unavailable on your system, each of these package can be installed with the following command
+ When unavailable on your system, each of these packages can be installed with the following command
 
 ```sh
 pip install package_name
@@ -96,7 +96,7 @@ print('BIC = ', BIC)
 print('cvm = ', cvm)
 ```
 
-**One could perform a goodness-of-fit test  **
+**One could perform a goodness-of-fit test for the two regimes HMM norm with  **
 
 ```sh
 reg = 2
@@ -104,12 +104,27 @@ family = 'norm'
 max_iter = 10000  ## maximum number of iterations of the EM algorithm
 eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
 B = 100  ## number of bootstap samples
-pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM = hmm.GofHMMGen(y, reg, family, max_iter, eps, B)
+pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM = hmm.GofHMMGen(y_norm, reg, family, max_iter, eps, B)
 
 ## The model is valid if the pvalue is greater than 5.
 print('pvalue = ', pvalue) 
 ```
 
+
+**One could perform a goodness-of-fit test for the two regimes HMM binom with  **
+
+```sh
+reg = 2
+family = 'binom' 
+max_iter = 10000  ## maximum number of iterations of the EM algorithm
+eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
+B = 100  ## number of bootstap samples
+ntrial = 5
+pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM = hmm.GofHMMGen(y_binom, reg, family, max_iter, eps, B, ntrial)
+
+## The model is valid if the pvalue is greater than 5.
+print('pvalue = ', pvalue) 
+```
 
 
 
