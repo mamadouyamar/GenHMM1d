@@ -13,6 +13,10 @@ $ pip install git+https://github.com/mamadouyamar/GenHMM1d.git
 
 ## Requirements
 GenHMM1d requires the following libraries 
+Markup : * Bullet list
+              * Nested bullet
+                  * Sub-nested bullet etc
+          * Bullet list item 2
 	- scipy 
 	- matplotlib.pyplot 
 	- numpy
@@ -37,6 +41,8 @@ $ import matplotlib.pyplot as plt
 $ import numpy as np
 $ from GenHMM1d import hmm 
 ```
+
+To generate observations from a particular model, one need to specify the following quantities
 
 
 
