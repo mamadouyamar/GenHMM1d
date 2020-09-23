@@ -127,7 +127,7 @@ print('pvalue = ', pvalue)
 ```
 
 
-** One could computed the predicted probabilities of the regimes for a new observation (ynew) at time n+1, given observation up to time n **
+** One could computed the predicted probabilities of the regimes for new observations (ynew) at time n+1, given observation up to time n **
 
 ```sh
 ## We start by estimating the parameters of the model
@@ -143,6 +143,63 @@ ynew = np.array([0.5, 0.7, 1, -1])
 forecastedprob = ForecastHMMeta(ynew, family, theta, Q, eta_EM[-1,0:reg])
 print(forecastedprob)
 ```
+
+
+
+** One could computed the forecasted probability density function for observation (range_y) for the horizon (k), given observation up to time n **
+
+```sh
+## We start by estimating the parameters of the model
+
+reg = 2  
+family = 'norm' 
+theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
+
+## The selected values for which we are interested in the pdf 
+range_y = np.arange(-5,5,0.1)
+
+## The horizon of interest
+k = [1,2,5]
+
+## The forecasted probabilities
+forecastedpdf = ForecastHMMPdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+plt.plot(range_y, forecastedpdf[0:len(range_y),0])
+plt.plot(range_y, forecastedpdf[0:len(range_y),1])
+plt.plot(range_y, forecastedpdf[0:len(range_y),2])
+plt.title('Forecasted probability density function for horizon 1, 2 and 5')
+plt.legend(['k = 1','k = 2', 'k = 5'])
+plt.show()
+```
+
+
+
+** One could computed the forecasted cumulative distribution function for observation (range_y) for the horizon (k), given observation up to time n **
+
+```sh
+## We start by estimating the parameters of the model
+
+reg = 2  
+family = 'norm' 
+theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
+
+## The selected values for which we are interested in the pdf 
+range_y = np.arange(-5,5,0.1)
+
+## The horizon of interest
+k = [1,2,5]
+
+## The forecasted probabilities
+forecastedpdf = ForecastHMMCdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+plt.plot(range_y, forecastedcdf[0:len(range_y),0])
+plt.plot(range_y, forecastedcdf[0:len(range_y),1])
+plt.plot(range_y, forecastedcdf[0:len(range_y),2])
+plt.title('Forecasted cumulative distribution function for horizon 1, 2 and 5')
+plt.legend(['k = 1','k = 2', 'k = 5'])
+plt.show()
+```
+
+
+
 
 
 ## Contributing
