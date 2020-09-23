@@ -20,6 +20,7 @@ GenHMM1d requires the following libraries
 * scipy 
 * joblib
 * multiprocessing
+* python >= 3.6
  
  When unavailable on your system, each of these packages can be installed with the following command
 
