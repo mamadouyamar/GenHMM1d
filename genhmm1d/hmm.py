@@ -2448,8 +2448,8 @@ def SimHMMGen(Q, family, theta, n, ntrial=0):
             
     elif family =='t':  ##  [R+]   support [R]
         for j in range(r):
-            sim[0:n,j] = stats.t.rvs(theta[j][0], loc=theta[j][1],
-                                     scale=theta[j][2], size=n) 
+            sim[0:n,j] = stats.t.rvs(theta[j,0], loc=theta[j,1],
+                                     scale=theta[j,2], size=n) 
             
         
     elif family =='tukeylambda':  ##  [R]   support [R]
@@ -2483,6 +2483,764 @@ def SimHMMGen(Q, family, theta, n, ntrial=0):
 ##=============================================================================
 ##=============================================================================
 ##=============================================================================
+
+
+
+def SimUnivGen(family, theta, n, ntrial=0):
+ 
+    if (n>1):
+        
+        sim = np.zeros((n,1))
+ 
+        #=================================== 
+        if family =='alpha':  ## [R+] ;     support [R+]
+            
+                sim[0:n] = stats.alpha.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n)  
+                
+                
+        elif family =='argus':  ## [R+] ;     support ]0,1[
+            
+                sim[0:n] = stats.argus.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n)     
+                
+                
+        elif family =='beta':  ## [R+, R+] ;     support [0, 1]
+            
+                sim[0:n] = stats.beta.rvs(theta[0], theta[1],
+                                            loc=theta[2], scale=theta[3], size=n)  
+                
+                
+        elif family =='betaprime':  ## [R+, R+] ;     support [R+]
+            
+                sim[0:n] = stats.betaprime.rvs(theta[0], theta[1],
+                                                 loc=theta[2], scale=theta[3], size=n)  
+                
+        
+        elif family =='binom':  ## [R+] ;     support [N+]
+            
+                sim[0:n] = stats.binom.rvs(ntrial, theta[0], size=n)  
+                
+                
+        elif family =='nbinom':  ## [R+] ;     support [N+]
+            
+                sim[0:n] = stats.nbinom.rvs(ntrial, theta[0], size=n)  
+                
+                
+        elif family =='bradford':  ## [R+] ;     support [0, 1]
+            
+                sim[0:n] = stats.bradford.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)   
+                
+                
+        elif family =='burr':  ## [R+, R+] ;     support [R+]
+            
+                sim[0:n] = stats.burr.rvs(theta[0], theta[1],
+                                            loc=theta[2], scale=theta[3], size=n) 
+                
+        
+        elif family =='burr12':  ## [R+, R+] ;     support [R+]
+            
+                sim[0:n] = stats.burr12.rvs(theta[0], theta[1],
+                                              loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='chi':  ## [R+] ;     support [R+]
+            
+                sim[0:n] = stats.chi.rvs(theta[0], loc=theta[1],
+                                           scale=theta[2], size=n) 
+                
+                
+        elif family =='chi2':  ## [R+] ;     support [R+]
+            
+                sim[0:n] = stats.chi2.rvs(theta[0], loc=theta[1],
+                                            scale=theta[2], size=n) 
+                 
+                
+                
+        elif family =='dgamma':  ## [R+] ;     support [R]
+            
+                sim[0:n] = stats.dgamma.rvs(theta[0], loc=theta[1],
+                                              scale=theta[2], size=n)  
+                
+                
+        elif family =='dweibull':  ## [R+] ;     support [R]
+            
+                sim[0:n] = stats.dweibull.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)  
+                
+                
+        elif family =='ev':  ##  []   support [R]
+            
+                sim[0:n] = stats.genextreme.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='expon':  ## [] ;     support [R+]
+            
+                sim[0:n] = stats.expon.rvs(loc=theta[0], scale=theta[1],
+                                             size=n)   
+                
+                
+        elif family =='exponnorm':  ## [R+] ;     support [R]
+            
+                sim[0:n] = stats.exponnorm.rvs(theta[0], loc=theta[1],
+                                                 scale=theta[2], size=n)    
+                
+                
+        elif family =='exponweib':  ## [R+, R+] ;     support [R+]
+            
+                sim[0:n] = stats.exponweib.rvs(theta[0], theta[1], loc=theta[2],
+                                                 scale=theta[3], size=n)    
+                
+            
+        elif family =='exponpow':  ## [R+] ;     support [R+]
+            
+                sim[0:n] = stats.exponpow.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)   
+                
+                
+        elif family =='f':  ## [R+, R+] ;     support [R+]
+            
+                sim[0:n] = stats.f.rvs(theta[0], theta[1], loc=theta[2],
+                                         scale=theta[3], size=n)   
+                
+                
+        elif family =='fatiguelife':  ## [R+] ;     support [R+]
+            
+                sim[0:n] = stats.fatiguelife.rvs(theta[0], loc=theta[1],
+                                                   scale=theta[2], size=n)  
+                
+                
+        elif family =='fisk':  ## [R+] ;     support [R+]
+            
+                sim[0:n] = stats.fisk.rvs(theta[0], loc=theta[1],
+                                            scale=theta[2], size=n) 
+                
+                
+        elif family =='gamma':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.gamma.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n) 
+                
+                
+        elif family =='genlogistic':  ## [R+]   support [R+]
+            
+                sim[0:n] = stats.genlogistic.rvs(theta[0], loc=theta[1],
+                                                   scale=theta[2], size=n)  
+                
+        
+        elif family =='gennorm':  ##  [R+]   support [R]
+            
+                sim[0:n] = stats.gennorm.rvs(theta[0], loc=theta[1],
+                                               scale=theta[2], size=n) 
+                
+        elif family =='genexpon':  ##  [R+, R+, R+]   support [R+]
+            
+                sim[0:n] = stats.genexpon.rvs(theta[0], theta[1], theta[2],
+                                                loc=theta[3], scale=theta[4], size=n) 
+                
+                
+        elif family =='gengamma':  ##  [R+, R+]   support [R+]
+            
+                sim[0:n] = stats.gengamma.rvs(theta[0], theta[1],
+                                                loc=theta[2], scale=theta[2], size=n) 
+                
+                
+        elif family =='geninvgauss':  ##  [R, R+]   support [R+]
+            
+                sim[0:n] = stats.geninvgauss.rvs(theta[0], theta[1],
+                                                   loc=theta[2], scale=theta[2], size=n) 
+                
+            
+        elif family =='geom':  ##  [R+]   support [N+]
+            
+                sim[0:n] = stats.geom.rvs(theta[0], size=n)  
+                
+        
+        elif family =='gompertz':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.gompertz.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='gumbel_r':  ##  []   support [R+]
+            
+                sim[0:n] = stats.gumbel_r.rvs(loc=theta[0], scale=theta[1], size=n)   
+                
+                
+        elif family =='gumbel_l':  ##  []   support [R+]
+            
+                sim[0:n] = stats.gumbel_l.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='invgamma':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.invgamma.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='invgauss':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.invgauss.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='invweibull':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.invweibull.rvs(theta[0], loc=theta[1],
+                                                  scale=theta[2], size=n) 
+                
+                
+        elif family =='johnsonsu':  ##  [R+, R+]   support [R+]
+            
+                sim[0:n] = stats.johnsonsu.rvs(theta[0], theta[1],
+                                                 loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='laplace':  ##  []   support [R]
+            
+                sim[0:n] = stats.laplace.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='levy':  ##  []   support [R+]
+            
+                sim[0:n] = stats.levy.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='levy_l':  ##  []   support [R-]
+            
+                sim[0:n] = stats.levy_l.rvs(loc=theta[0], scale=theta[1], size=n) 
+            
+                
+        elif family =='logistic':  ##  []   support [R]
+            
+                sim[0:n] = stats.logistic.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+               
+        elif family =='loggamma':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.loggamma.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='loglaplace':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.loglaplace.rvs(theta[0], loc=theta[1],
+                                                  scale=theta[2], size=n) 
+                
+                
+        elif family =='lognorm':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.loglaplace.rvs(theta[0], loc=theta[1],
+                                                  scale=theta[2], size=n) 
+                
+                
+        elif family =='lomax':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.lomax.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n)    
+                
+                
+        elif family =='maxwell':  ##  []   support [R+]
+            
+                sim[0:n] = stats.maxwell.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='mielke':  ##  [R+, R+]   support [R+]
+            
+                sim[0:n] = stats.mielke.rvs(theta[0], theta[1],
+                                              loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='moyal':  ##  []   support [R]
+            
+                sim[0:n] = stats.moyal.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+        
+        elif family =='nakagami':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.nakagami.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)    
+                
+                
+        elif family =='ncf':  ##  [R+, R+, R]   support [R+]
+            
+                sim[0:n] = stats.ncf.rvs(theta[0], theta[1], theta[2],
+                                           loc=theta[3], scale=theta[4], size=n) 
+                
+                
+        elif family =='nct':  ##  [R+, R]   support [R+]
+            
+                sim[0:n] = stats.nct.rvs(theta[0], theta[1],
+                                           loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='ncx2':  ##  [R+, R]   support [R+]
+            
+                sim[0:n] = stats.ncx2.rvs(theta[0], theta[1],
+                                            loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family == 'norm':   ## [] ;     support [R]
+            
+                sim[0:n,0] = stats.norm.rvs(loc=theta[0], scale=theta[1], size=n)  
+                
+                
+         
+        elif family == 'norminvgauss':   ## [R+, abs(b)>a] ;     support [R]
+            
+                sim[0:n] = stats.norminvgauss.rvs(theta[0], theta[1],
+                                                    loc=theta[2], scale=theta[3], size=n)  
+                
+       
+        elif family =='poisson':  ##  [R+]   support [N+]
+            
+                sim[0:n] = stats.poisson.rvs(theta[0], size=n)  
+                
+                
+        elif family =='powerlaw':  ##  [R+]   support [0,1]
+            
+                sim[0:n] = stats.powerlaw.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)  
+                
+            
+        elif family =='powerlognorm':  ##  [R+, R+]   support [R+]
+            
+                sim[0:n] = stats.powerlognorm.rvs(theta[0], theta[1],
+                                                    loc=theta[2], scale=theta[3], size=n) 
+                
+        
+        elif family =='powernorm':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.powernorm.rvs(theta[0], loc=theta[1],
+                                                 scale=theta[2], size=n) 
+                
+                
+        elif family =='rayleigh':  ##  []   support [R+]
+            
+                sim[0:n] = stats.rayleigh.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='rice':  ##  [R+]   support [R+]
+            
+                sim[0:n] = stats.rice.rvs(theta[0], loc=theta[1],
+                                            scale=theta[2], size=n) 
+         
+            
+        elif family =='recipinvgauss':  ##  [R]   support [R+]
+            
+                sim[0:n] = stats.recipinvgauss.rvs(theta[0], loc=theta[1], scale=theta[2], size=n) 
+                
+        
+            
+        elif family =='skewnorm':  ##  [R+]   support [R]
+            
+                sim[0:n] = stats.skewnorm.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='t':  ##  [R+]   support [R]
+            
+                sim[0:n] = stats.t.rvs(theta[0], loc=theta[1],
+                                         scale=theta[2], size=n) 
+                
+            
+        elif family =='tukeylambda':  ##  [R]   support [R]
+            
+                sim[0:n] = stats.tukeylambda.rvs(theta[0], loc=theta[1],
+                                                   scale=theta[2], size=n) 
+                
+                
+        
+        elif family =='wald':  ##  []   support [R+]
+            
+                sim[0:n] = stats.wald.rvs(loc=theta[0], scale=theta[1], size=n)       
+             
+                
+             
+    elif (n==1):
+        
+        #=================================== 
+        if family =='alpha':  ## [R+] ;     support [R+]
+            
+                sim = stats.alpha.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n)  
+                
+                
+        elif family =='argus':  ## [R+] ;     support ]0,1[
+            
+                sim = stats.argus.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n)     
+                
+                
+        elif family =='beta':  ## [R+, R+] ;     support [0, 1]
+            
+                sim = stats.beta.rvs(theta[0], theta[1],
+                                            loc=theta[2], scale=theta[3], size=n)  
+                
+                
+        elif family =='betaprime':  ## [R+, R+] ;     support [R+]
+            
+                sim = stats.betaprime.rvs(theta[0], theta[1],
+                                                 loc=theta[2], scale=theta[3], size=n)  
+                
+        
+        elif family =='binom':  ## [R+] ;     support [N+]
+            
+                sim = stats.binom.rvs(ntrial, theta[0], size=n)  
+                
+                
+        elif family =='nbinom':  ## [R+] ;     support [N+]
+            
+                sim = stats.nbinom.rvs(ntrial, theta[0], size=n)  
+                
+                
+        elif family =='bradford':  ## [R+] ;     support [0, 1]
+            
+                sim = stats.bradford.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)   
+                
+                
+        elif family =='burr':  ## [R+, R+] ;     support [R+]
+            
+                sim = stats.burr.rvs(theta[0], theta[1],
+                                            loc=theta[2], scale=theta[3], size=n) 
+                
+        
+        elif family =='burr12':  ## [R+, R+] ;     support [R+]
+            
+                sim = stats.burr12.rvs(theta[0], theta[1],
+                                              loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='chi':  ## [R+] ;     support [R+]
+            
+                sim = stats.chi.rvs(theta[0], loc=theta[1],
+                                           scale=theta[2], size=n) 
+                
+                
+        elif family =='chi2':  ## [R+] ;     support [R+]
+            
+                sim = stats.chi2.rvs(theta[0], loc=theta[1],
+                                            scale=theta[2], size=n) 
+                 
+                
+                
+        elif family =='dgamma':  ## [R+] ;     support [R]
+            
+                sim = stats.dgamma.rvs(theta[0], loc=theta[1],
+                                              scale=theta[2], size=n)  
+                
+                
+        elif family =='dweibull':  ## [R+] ;     support [R]
+            
+                sim = stats.dweibull.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)  
+                
+                
+        elif family =='ev':  ##  []   support [R]
+            
+                sim = stats.genextreme.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='expon':  ## [] ;     support [R+]
+            
+                sim = stats.expon.rvs(loc=theta[0], scale=theta[1],
+                                             size=n)   
+                
+                
+        elif family =='exponnorm':  ## [R+] ;     support [R]
+            
+                sim = stats.exponnorm.rvs(theta[0], loc=theta[1],
+                                                 scale=theta[2], size=n)    
+                
+                
+        elif family =='exponweib':  ## [R+, R+] ;     support [R+]
+            
+                sim = stats.exponweib.rvs(theta[0], theta[1], loc=theta[2],
+                                                 scale=theta[3], size=n)    
+                
+            
+        elif family =='exponpow':  ## [R+] ;     support [R+]
+            
+                sim = stats.exponpow.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)   
+                
+                
+        elif family =='f':  ## [R+, R+] ;     support [R+]
+            
+                sim = stats.f.rvs(theta[0], theta[1], loc=theta[2],
+                                         scale=theta[3], size=n)   
+                
+                
+        elif family =='fatiguelife':  ## [R+] ;     support [R+]
+            
+                sim = stats.fatiguelife.rvs(theta[0], loc=theta[1],
+                                                   scale=theta[2], size=n)  
+                
+                
+        elif family =='fisk':  ## [R+] ;     support [R+]
+            
+                sim = stats.fisk.rvs(theta[0], loc=theta[1],
+                                            scale=theta[2], size=n) 
+                
+                
+        elif family =='gamma':  ##  [R+]   support [R+]
+            
+                sim = stats.gamma.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n) 
+                
+                
+        elif family =='genlogistic':  ## [R+]   support [R+]
+            
+                sim = stats.genlogistic.rvs(theta[0], loc=theta[1],
+                                                   scale=theta[2], size=n)  
+                
+        
+        elif family =='gennorm':  ##  [R+]   support [R]
+            
+                sim = stats.gennorm.rvs(theta[0], loc=theta[1],
+                                               scale=theta[2], size=n) 
+                
+        elif family =='genexpon':  ##  [R+, R+, R+]   support [R+]
+            
+                sim = stats.genexpon.rvs(theta[0], theta[1], theta[2],
+                                                loc=theta[3], scale=theta[4], size=n) 
+                
+                
+        elif family =='gengamma':  ##  [R+, R+]   support [R+]
+            
+                sim = stats.gengamma.rvs(theta[0], theta[1],
+                                                loc=theta[2], scale=theta[2], size=n) 
+                
+                
+        elif family =='geninvgauss':  ##  [R, R+]   support [R+]
+            
+                sim = stats.geninvgauss.rvs(theta[0], theta[1],
+                                                   loc=theta[2], scale=theta[2], size=n) 
+                
+            
+        elif family =='geom':  ##  [R+]   support [N+]
+            
+                sim = stats.geom.rvs(theta[0], size=n)  
+                
+        
+        elif family =='gompertz':  ##  [R+]   support [R+]
+            
+                sim = stats.gompertz.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='gumbel_r':  ##  []   support [R+]
+            
+                sim = stats.gumbel_r.rvs(loc=theta[0], scale=theta[1], size=n)   
+                
+                
+        elif family =='gumbel_l':  ##  []   support [R+]
+            
+                sim = stats.gumbel_l.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='invgamma':  ##  [R+]   support [R+]
+            
+                sim = stats.invgamma.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='invgauss':  ##  [R+]   support [R+]
+            
+                sim = stats.invgauss.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='invweibull':  ##  [R+]   support [R+]
+            
+                sim = stats.invweibull.rvs(theta[0], loc=theta[1],
+                                                  scale=theta[2], size=n) 
+                
+                
+        elif family =='johnsonsu':  ##  [R+, R+]   support [R+]
+            
+                sim = stats.johnsonsu.rvs(theta[0], theta[1],
+                                                 loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='laplace':  ##  []   support [R]
+            
+                sim = stats.laplace.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='levy':  ##  []   support [R+]
+            
+                sim = stats.levy.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='levy_l':  ##  []   support [R-]
+            
+                sim = stats.levy_l.rvs(loc=theta[0], scale=theta[1], size=n) 
+            
+                
+        elif family =='logistic':  ##  []   support [R]
+            
+                sim = stats.logistic.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+               
+        elif family =='loggamma':  ##  [R+]   support [R+]
+            
+                sim = stats.loggamma.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='loglaplace':  ##  [R+]   support [R+]
+            
+                sim = stats.loglaplace.rvs(theta[0], loc=theta[1],
+                                                  scale=theta[2], size=n) 
+                
+                
+        elif family =='lognorm':  ##  [R+]   support [R+]
+            
+                sim = stats.loglaplace.rvs(theta[0], loc=theta[1],
+                                                  scale=theta[2], size=n) 
+                
+                
+        elif family =='lomax':  ##  [R+]   support [R+]
+            
+                sim = stats.lomax.rvs(theta[0], loc=theta[1],
+                                             scale=theta[2], size=n)    
+                
+                
+        elif family =='maxwell':  ##  []   support [R+]
+            
+                sim = stats.maxwell.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='mielke':  ##  [R+, R+]   support [R+]
+            
+                sim = stats.mielke.rvs(theta[0], theta[1],
+                                              loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='moyal':  ##  []   support [R]
+            
+                sim = stats.moyal.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+        
+        elif family =='nakagami':  ##  [R+]   support [R+]
+            
+                sim = stats.nakagami.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)    
+                
+                
+        elif family =='ncf':  ##  [R+, R+, R]   support [R+]
+            
+                sim = stats.ncf.rvs(theta[0], theta[1], theta[2],
+                                           loc=theta[3], scale=theta[4], size=n) 
+                
+                
+        elif family =='nct':  ##  [R+, R]   support [R+]
+            
+                sim = stats.nct.rvs(theta[0], theta[1],
+                                           loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family =='ncx2':  ##  [R+, R]   support [R+]
+            
+                sim = stats.ncx2.rvs(theta[0], theta[1],
+                                            loc=theta[2], scale=theta[3], size=n) 
+                
+                
+        elif family == 'norm':   ## [] ;     support [R]
+            
+                sim = stats.norm.rvs(loc=theta[0], scale=theta[1], size=n)  
+                
+                
+         
+        elif family == 'norminvgauss':   ## [R+, abs(b)>a] ;     support [R]
+            
+                sim = stats.norminvgauss.rvs(theta[0], theta[1],
+                                                    loc=theta[2], scale=theta[3], size=n)  
+                
+       
+        elif family =='poisson':  ##  [R+]   support [N+]
+            
+                sim = stats.poisson.rvs(theta[0], size=n)  
+                
+                
+        elif family =='powerlaw':  ##  [R+]   support [0,1]
+            
+                sim = stats.powerlaw.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n)  
+                
+            
+        elif family =='powerlognorm':  ##  [R+, R+]   support [R+]
+            
+                sim = stats.powerlognorm.rvs(theta[0], theta[1],
+                                                    loc=theta[2], scale=theta[3], size=n) 
+                
+        
+        elif family =='powernorm':  ##  [R+]   support [R+]
+            
+                sim = stats.powernorm.rvs(theta[0], loc=theta[1],
+                                                 scale=theta[2], size=n) 
+                
+                
+        elif family =='rayleigh':  ##  []   support [R+]
+            
+                sim = stats.rayleigh.rvs(loc=theta[0], scale=theta[1], size=n) 
+                
+                
+        elif family =='rice':  ##  [R+]   support [R+]
+            
+                sim = stats.rice.rvs(theta[0], loc=theta[1],
+                                            scale=theta[2], size=n) 
+         
+            
+        elif family =='recipinvgauss':  ##  [R]   support [R+]
+            
+                sim = stats.recipinvgauss.rvs(theta[0], loc=theta[1], scale=theta[2], size=n) 
+                
+        
+            
+        elif family =='skewnorm':  ##  [R+]   support [R]
+            
+                sim = stats.skewnorm.rvs(theta[0], loc=theta[1],
+                                                scale=theta[2], size=n) 
+                
+                
+        elif family =='t':  ##  [R+]   support [R]
+            
+                sim = stats.t.rvs(theta[0], loc=theta[1],
+                                         scale=theta[2], size=n) 
+                
+            
+        elif family =='tukeylambda':  ##  [R]   support [R]
+            
+                sim = stats.tukeylambda.rvs(theta[0], loc=theta[1],
+                                                   scale=theta[2], size=n) 
+                
+                
+        
+        elif family =='wald':  ##  []   support [R+]
+            
+                sim = stats.wald.rvs(loc=theta[0], scale=theta[1], size=n) 
+            
+
+
+    #=================================== 
+    return(sim)
+
+
+
+
+##=============================================================================
+##=============================================================================
+##=============================================================================
+##=============================================================================
+
+
+
+
+
 
 
 
@@ -2711,6 +3469,387 @@ def Sn1d(U):
 
 
 
+
+
+##=============================================================================
+
+
+def statsdistr(family, param, ntrial=0):
+    
+
+    #=================================== 
+    if family =='alpha':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.alpha.stats(param[0], loc=param[1],
+                                         scale=param[2], moments='mvsk')  
+            
+            
+    elif family =='argus':  ## [R+] ;     support ]0,1[
+        
+            mean, var, skew, kurt =  stats.argus.stats(param[0], loc=param[1],
+                                         scale=param[2], moments='mvsk')     
+            
+            
+    elif family =='beta':  ## [R+, R+] ;     support [0, 1]
+        
+            mean, var, skew, kurt =  stats.beta.stats(param[0], param[1],
+                                        loc=param[2], scale=param[3], moments='mvsk')  
+            
+            
+    elif family =='betaprime':  ## [R+, R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.betaprime.stats(param[0], param[1],
+                                             loc=param[2], scale=param[3], moments='mvsk')  
+            
+            
+    elif family =='binom':  ## [R+] ;     support [N+]
+        
+            mean, var, skew, kurt =  stats.binom.stats(ntrial, param[0], moments='mvsk') 
+            
+            
+    elif family =='nbinom':  ## [R+] ;     support [N+]
+        
+            mean, var, skew, kurt =  stats.nbinom.stats(ntrial, param[0], moments='mvsk') 
+            
+            
+    elif family =='bradford':  ## [R+] ;     support [0, 1]
+        
+            mean, var, skew, kurt =  stats.bradford.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk')   
+            
+            
+    elif family =='burr':  ## [R+, R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.burr.stats(param[0], param[1],
+                                        loc=param[2], scale=param[3], moments='mvsk') 
+            
+    
+    elif family =='burr12':  ## [R+, R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.burr12.stats(param[0], param[1],
+                                          loc=param[2], scale=param[3], moments='mvsk') 
+            
+            
+    elif family =='chi':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.chi.stats(param[0], loc=param[1],
+                                       scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='chi2':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.chi2.stats(param[0], loc=param[1],
+                                        scale=param[2], moments='mvsk') 
+            
+     
+            
+    elif family =='dgamma':  ## [R+] ;     support [R]
+        
+            mean, var, skew, kurt =  stats.dgamma.stats(param[0], loc=param[1],
+                                          scale=param[2], moments='mvsk')  
+            
+            
+    elif family =='dweibull':  ## [R+] ;     support [R]
+        
+            mean, var, skew, kurt =  stats.dweibull.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk')  
+            
+            
+    elif family =='ev':  ##  []   support [R]
+        
+            mean, var, skew, kurt =  stats.genextreme.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+            
+    elif family =='expon':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.expon.stats(loc=param[0], scale=param[1], moments='mvsk')   
+            
+            
+    elif family =='exponnorm':  ## [R+] ;     support [R]
+        
+            mean, var, skew, kurt =  stats.exponnorm.stats(param[0], loc=param[1],
+                                             scale=param[2], moments='mvsk')    
+            
+            
+    elif family =='exponweib':  ## [R+, R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.exponweib.stats(param[0], param[1], loc=param[2],
+                                             scale=param[3], moments='mvsk')    
+            
+        
+    elif family =='exponpow':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.exponpow.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk')   
+            
+            
+    elif family =='f':  ## [R+, R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.f.stats(param[0], param[1], loc=param[2],
+                                     scale=param[3], moments='mvsk')   
+            
+            
+    elif family =='fatiguelife':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.fatiguelife.stats(param[0], loc=param[1],
+                                               scale=param[2], moments='mvsk')  
+            
+            
+    elif family =='fisk':  ## [R+] ;     support [R+]
+        
+            mean, var, skew, kurt =  stats.fisk.stats(param[0], loc=param[1],
+                                        scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='gamma':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.gamma.stats(param[0], loc=param[1],
+                                         scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='genlogistic':  ## [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.genlogistic.stats(param[0], loc=param[1],
+                                               scale=param[2], moments='mvsk')  
+            
+    
+    elif family =='gennorm':  ##  [R+]   support [R]
+        
+            mean, var, skew, kurt =  stats.gennorm.stats(param[0], loc=param[1],
+                                           scale=param[2], moments='mvsk') 
+            
+    elif family =='genexpon':  ##  [R+, R+, R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.genexpon.stats(param[0], param[1], param[2],
+                                            loc=param[3], scale=param[4], moments='mvsk') 
+            
+            
+    elif family =='gengamma':  ##  [R+, R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.gengamma.stats(param[0], param[1],
+                                            loc=param[2], scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='geninvgauss':  ##  [R, R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.geninvgauss.stats(param[0], param[1],
+                                               loc=param[2], scale=param[2], moments='mvsk') 
+            
+    elif family =='geom':  ##  [R+]   support [N+]
+
+            mean, var, skew, kurt = stats.geom.stats(param[0], moments='mvsk')  
+            
+    
+    elif family =='gompertz':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.gompertz.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='gumbel_r':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.gumbel_r.stats(loc=param[0], scale=param[1], moments='mvsk')   
+            
+            
+    elif family =='gumbel_l':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.gumbel_l.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+            
+    elif family =='invgamma':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.invgamma.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='invgauss':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.invgauss.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='invweibull':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.invweibull.stats(param[0], loc=param[1],
+                                              scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='johnsonsu':  ##  [R+, R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.johnsonsu.stats(param[0], param[1],
+                                             loc=param[2], scale=param[3], moments='mvsk') 
+            
+            
+    elif family =='laplace':  ##  []   support [R]
+        
+            mean, var, skew, kurt =  stats.laplace.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+            
+    elif family =='levy':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.levy.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+            
+    elif family =='levy_l':  ##  []   support [R-]
+        
+            mean, var, skew, kurt =  stats.levy_l.stats(loc=param[0], scale=param[1], moments='mvsk') 
+        
+            
+    elif family =='logistic':  ##  []   support [R]
+        
+            mean, var, skew, kurt =  stats.logistic.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+           
+    elif family =='loggamma':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.loggamma.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='loglaplace':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.loglaplace.stats(param[0], loc=param[1],
+                                              scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='lognorm':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.loglaplace.stats(param[0], loc=param[1],
+                                              scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='lomax':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.lomax.stats(param[0], loc=param[1],
+                                         scale=param[2], moments='mvsk')    
+            
+            
+    elif family =='maxwell':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.maxwell.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+            
+    elif family =='mielke':  ##  [R+, R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.mielke.stats(param[0], param[1],
+                                          loc=param[2], scale=param[3], moments='mvsk') 
+            
+            
+    elif family =='moyal':  ##  []   support [R]
+        
+            mean, var, skew, kurt =  stats.moyal.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+    
+    elif family =='nakagami':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.nakagami.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk')    
+            
+            
+    elif family =='ncf':  ##  [R+, R+, R]   support [R+]
+        
+            mean, var, skew, kurt =  stats.ncf.stats(param[0], param[1], param[2],
+                                       loc=param[3], scale=param[4], moments='mvsk') 
+            
+            
+    elif family =='nct':  ##  [R+, R]   support [R+]
+        
+            mean, var, skew, kurt =  stats.nct.stats(param[0], param[1],
+                                       loc=param[2], scale=param[3], moments='mvsk') 
+            
+            
+    elif family =='ncx2':  ##  [R+, R]   support [R+]
+        
+            mean, var, skew, kurt =  stats.ncx2.stats(param[0], param[1],
+                                        loc=param[2], scale=param[3], moments='mvsk') 
+            
+            
+    elif family == 'norm':   ## [] ;     support [R]
+        
+            mean, var, skew, kurt =  stats.norm.stats(loc=param[0], scale=param[1], moments='mvsk')  
+            
+            
+     
+    elif family == 'norminvgauss':   ## [R+, abs(b)>a] ;     support [R]
+        
+            mean, var, skew, kurt =  stats.norminvgauss.stats(param[0], param[1],
+                                                loc=param[2], scale=param[3], moments='mvsk')  
+            
+            
+    elif family =='poisson':  ##  [R+]   support [N+]
+
+            mean, var, skew, kurt = stats.poisson.stats(param[0], moments='mvsk')  
+            
+            
+    elif family =='powerlaw':  ##  [R+]   support [0,1]
+        
+            mean, var, skew, kurt =  stats.powerlaw.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk')  
+            
+        
+    elif family =='powerlognorm':  ##  [R+, R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.powerlognorm.stats(param[0], param[1],
+                                                loc=param[2], scale=param[3], moments='mvsk') 
+            
+    
+    elif family =='powernorm':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.powernorm.stats(param[0], loc=param[1],
+                                             scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='rayleigh':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.rayleigh.stats(loc=param[0], scale=param[1], moments='mvsk') 
+            
+            
+    elif family =='rice':  ##  [R+]   support [R+]
+        
+            mean, var, skew, kurt =  stats.rice.stats(param[0], loc=param[1],
+                                        scale=param[2], moments='mvsk') 
+     
+        
+    elif family =='recipinvgauss':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.recipinvgauss.stats(param[0], loc=param[1], scale=param[2], moments='mvsk') 
+            
+    
+        
+    elif family =='skewnorm':  ##  [R+]   support [R]
+        
+            mean, var, skew, kurt =  stats.skewnorm.stats(param[0], loc=param[1],
+                                            scale=param[2], moments='mvsk') 
+            
+            
+    elif family =='t':  ##  [R+]   support [R]
+        
+            mean, var, skew, kurt =  stats.t.stats(param[0], loc=param[1],
+                                     scale=param[2], moments='mvsk') 
+            
+        
+    elif family =='tukeylambda':  ##  [R]   support [R]
+        
+            mean, var, skew, kurt =  stats.tukeylambda.stats(param[0], loc=param[1],
+                                               scale=param[2], moments='mvsk') 
+            
+            
+    
+    elif family =='wald':  ##  []   support [R+]
+        
+            mean, var, skew, kurt =  stats.wald.stats(loc=param[0], scale=param[1], moments='mvsk')       
+            
+               
+        
+
+    #=================================== 
+    return(mean, var, skew, kurt)
+
+
+
+
+
+
 ##=============================================================================
 
 def EstHMMGen(y, reg, family, max_iter=10000, eps=10e-4, ntrial=0):
@@ -2805,7 +3944,36 @@ def EstHMMGen(y, reg, family, max_iter=10000, eps=10e-4, ntrial=0):
     cvm = Sn1d(U)
     
     
-    return(theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC)
+    pred_e = np.zeros((n,1))
+    pred_l = np.zeros((n,1))
+    for i in range(n):
+        bb_e = np.argsort(eta_EM[i,0:reg])
+        pred_e[i] = bb_e[-1]
+        bb_l = np.argsort(lambda_EM[i,0:reg])
+        pred_l[i] = bb_l[-1]
+    pred_e = pred_e+1
+    pred_l = pred_l+1
+
+
+    statistics = np.zeros((reg,4))
+    mean_s = np.zeros((reg,1))
+    var_s = np.zeros((reg,1))
+    skew_s = np.zeros((reg,1))
+    kurt_s = np.zeros((reg,1))
+    for j in range(reg):
+        mean_s[j], var_s[j], skew_s[j], kurt_s[j] = statsdistr(family, theta[j,0:p])
+        
+    statistics[0:reg,0] = mean_s.squeeze(-1)
+    statistics[0:reg,1] = var_s.squeeze(-1)
+    statistics[0:reg,2] = skew_s.squeeze(-1)
+    statistics[0:reg,3] = kurt_s.squeeze(-1)
+    
+    
+
+    
+    
+    return(theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc,
+           HQC, pred_e, pred_l, statistics)
     
     
     
@@ -2827,7 +3995,7 @@ def bootstrapfun(n, family, Q, theta, max_iter=10000, eps=10e-4, ntrial=0):
     
     reg = theta.shape[0]
 
-    theta1, Q1, eta1, nu1, U1, cvm1, W1, lambda_EM1, LL1, AIC1, BIC1, CAIC1, AICc1, HQC1 = EstHMMGen(
+    theta1, Q1, eta1, nu1, U1, cvm1, W1, lambda_EM1, LL1, AIC1, BIC1, CAIC1, AICc1, HQC1, pred_e, pred_l, statistics = EstHMMGen(
         y1, reg, family, max_iter, eps, ntrial)
     
     return(cvm1)
@@ -2842,7 +4010,7 @@ def bootstrapfun(n, family, Q, theta, max_iter=10000, eps=10e-4, ntrial=0):
 
 def GofHMMGen(y, reg, family, max_iter=10000, eps=10e-4, B=100, ntrial=0):
 
-    theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = EstHMMGen(
+    theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC, pred_e, pred_l, statistics = EstHMMGen(
                                                                 y, reg, family, max_iter, eps, ntrial)
     
     cvm_sim = np.zeros((B,1))
@@ -2856,7 +4024,7 @@ def GofHMMGen(y, reg, family, max_iter=10000, eps=10e-4, B=100, ntrial=0):
     cvm_sim=Parallel(n_jobs=num_cores, verbose=10)(delayed(bootstrapfun)(i, family, Q, theta, max_iter, eps, ntrial)for i in n_args)
     pvalue = 100*np.mean(cvm_sim>cvm)
     
-    return(pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM) 
+    return(pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM, pred_e, pred_l, statistics) 
 
 
 
@@ -2864,7 +4032,7 @@ def GofHMMGen(y, reg, family, max_iter=10000, eps=10e-4, B=100, ntrial=0):
 
 
 def ForecastHMMeta(ynew, family, theta, Q, eta):
-    
+ 
     r = Q.shape[0]
     p = theta.shape[1]
     n = len(ynew)
@@ -2873,7 +4041,7 @@ def ForecastHMMeta(ynew, family, theta, Q, eta):
     for j in range(r):
         for l in range(r):
             etanew[0:n,j] = etanew[0:n,j] + eta[l] * Q[l,j]
-        etanew[0:n,j] = etanew[0:n,j] * PDF(family, ynew, theta[j,0:p])
+        etanew[0:n,j] = etanew[0:n,j] * PDF(family, ynew, theta[j,0:p])    ## numerateur
         
     etanew = etanew/etanew.sum(axis=1)[:,None]
     
@@ -2882,18 +4050,45 @@ def ForecastHMMeta(ynew, family, theta, Q, eta):
 
 
 
+
+
+def ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial):
+
+    r = Q.shape[0]
+    n = len(ynew_s)
+    if n<=1:
+        Warning("length of the observations should be greater than 1")
+    
+    etanew_s = np.zeros((n, r))
+    etanew_s[0,0:r] = ForecastHMMeta(ynew_s[0], family, theta, Q, eta_initial)
+    for i in range(1, n):
+        etanew_s[i,0:r] = ForecastHMMeta(ynew_s[i], family, theta, Q, etanew_s[i-1,0:r])
+    
+    return(etanew_s)
+
+
+
 def ForecastHMMPdf(y, family, theta, Q, eta, k=1):
     
     r = Q.shape[0]
     p = theta.shape[1]
     n = len(y)
-    pdf = np.zeros((n, len(k)))
     
-    for d in range(len(k)):
-        Q_prime = np.linalg.matrix_power(Q, k[d])
-        for l in range(r):
-            for j in range(r):
-                pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * PDF(family, y, theta[l,0:p])
+    if (type(k) != int):
+        pdf = np.zeros((n, len(k)))
+        for d in range(len(k)):
+            Q_prime = np.linalg.matrix_power(Q, k[d])
+            for l in range(r):
+                for j in range(r):
+                    pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * PDF(family, y, theta[l,0:p])
+    
+    elif (type(k) == int):
+        pdf = np.zeros((n, 1))
+        for d in range(1):
+            Q_prime = np.linalg.matrix_power(Q, k)
+            for l in range(r):
+                for j in range(r):
+                    pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * PDF(family, y, theta[l,0:p])
 
     return(pdf)
 
@@ -2905,14 +4100,142 @@ def ForecastHMMCdf(y, family, theta, Q, eta, k=1):
     r = Q.shape[0]
     p = theta.shape[1]
     n = len(y)
-    cdf = np.zeros((n, len(k)))
     
-    for d in range(len(k)):
-        Q_prime = np.linalg.matrix_power(Q, k[d])
-        for l in range(r):
-            for j in range(r):
-                cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * CDF(family, y, theta[l,0:p])
+    if (type(k) != int):
+        cdf = np.zeros((n, len(k)))
+        for d in range(len(k)):
+            Q_prime = np.linalg.matrix_power(Q, k[d])
+            for l in range(r):
+                for j in range(r):
+                    cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * CDF(family, y, theta[l,0:p])
+    
+    elif (type(k) == int):
+        cdf = np.zeros((n, 1))
+        for d in range(1):
+            Q_prime = np.linalg.matrix_power(Q, k)
+            for l in range(r):
+                for j in range(r):
+                    cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * CDF(family, y, theta[l,0:p])
 
     return(cdf)
+
+
+
+
+def ForecastHMMStatistics(family, theta, Q, eta, k=1):
+    
+    r = Q.shape[0]
+    p = theta.shape[1]
+    if (type(k) != int):
+        mean_s = np.zeros((len(k),1))
+        var_s = np.zeros((len(k),1))
+        skew_s = np.zeros((len(k),1))
+        kurt_s = np.zeros((len(k),1))
+        
+        for d in range(len(k)):
+            Q_prime = np.linalg.matrix_power(Q, k[d])
+            for l in range(r):
+                for j in range(r):
+                    mean, var, skew, kurt = statsdistr(family, theta[l,0:p])
+                    mean_s[d] = mean_s[d] + eta[j] * Q_prime[j,l] * mean
+                    var_s[d] = var_s[d] + eta[j] * Q_prime[j,l] * var
+                    skew_s[d] = skew_s[d] + eta[j] * Q_prime[j,l] * skew
+                    kurt_s[d] = kurt_s[d] + eta[j] * Q_prime[j,l] * kurt
+                    
+    elif (type(k) == int):
+        mean_s = 0
+        var_s = 0
+        skew_s = 0
+        kurt_s = 0
+        
+        Q_prime = np.linalg.matrix_power(Q, k)
+        for l in range(r):
+            for j in range(r):
+                mean, var, skew, kurt = statsdistr(family, theta[l,0:p])
+                mean_s = mean_s + eta[j] * Q_prime[j,l] * mean
+                var_s = var_s + eta[j] * Q_prime[j,l] * var
+                skew_s = skew_s + eta[j] * Q_prime[j,l] * skew
+                kurt_s = kurt_s + eta[j] * Q_prime[j,l] * kurt
+        
+
+    return(mean_s, var_s, skew_s, kurt_s)
+
+
+
+
+
+
+def RollingForecastHMM(ynew_s, family, theta, Q, eta_initial):
+        
+    r = Q.shape[0]
+    n = len(ynew_s)    
+    y_hat = np.zeros((n,1))    
+    etanew_s = ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial)    
+    y_hat[0], __, __, __, = ForecastHMMStatistics(family, theta, Q, eta_initial)
+
+    for i in range(1,n):
+        y_hat[i], __, __, __, = ForecastHMMStatistics(family, theta, Q, etanew_s[i-1])
+
+    return(y_hat)
+
+
+
+
+
+
+def ForecastHMMRandom(family, theta, Q, eta, k=1):
+    
+    r = Q.shape[0]
+    p = theta.shape[1]    
+    Q_prime = np.linalg.matrix_power(Q, k)
+    y_sample = 0
+    for l in range(r):
+        for j in range(r):
+            y_sample = y_sample + eta[j] * Q_prime[j,l] * SimUnivGen(family, theta[l,0:p], 1)
+
+    return(y_sample)
+
+
+
+
+
+def RollingForecastHMM_byCum(ynew_s, family, theta, Q, eta_initial):
+        
+    r = Q.shape[0]
+    n = len(ynew_s)    
+    y_hat = np.zeros((n,1))    
+    etanew_s = ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial)    
+    y_hat[0] = ForecastHMMRandom(family, theta, Q, eta_initial)
+
+    for i in range(1,n):
+        y_hat[i] = ForecastHMMRandom(family, theta, Q, etanew_s[i-1])
+
+    return(y_hat)
+
+
+
+
+
+def RollingForecastHMM_pred_e(ynew_s, family, theta, Q, eta_initial):
+        
+    r = Q.shape[0]
+    n = len(ynew_s)    
+    y_hat = np.zeros((n,1))    
+    p = theta.shape[1] 
+    
+    etanew_s = ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial)    
+    
+    pred_e = np.zeros((n,1))
+    for i in range(n):
+        bb_e = np.argsort(etanew_s[i,0:r])
+        pred_e[i] = bb_e[-1]
+    
+    for i in range(n):
+        l = int(pred_e[i])
+        y_hat[i] = SimUnivGen(family, theta[l,0:p], 1)
+
+    return(y_hat)
+
+
 
 
