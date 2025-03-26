@@ -36,7 +36,7 @@ Import the needed libraries for this example
 import scipy as sp
 import matplotlib.pyplot as plt
 import numpy as np
-from GenHMM1d import hmm as hmm 
+from GenHMM1d import HMM as hmm 
 ```
 
 **To generate observations from a particular model, one need to specify the following quantities**
@@ -105,10 +105,10 @@ family = 'norm'
 max_iter = 10000  ## maximum number of iterations of the EM algorithm
 eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
 B = 100  ## number of bootstap samples
-pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM = hmm.GofHMMGen(y_norm, reg, family, max_iter, eps, B)
+out_GoF_norm = hmm.GofHMMGen(y_norm, reg, family, max_iter, eps, B)
 
 ## The model is valid if the pvalue is greater than 5.
-print('pvalue = ', pvalue) 
+print('pvalue = ', out_GoF_norm['pvalue']) 
 ```
 
 
@@ -121,10 +121,10 @@ max_iter = 10000  ## maximum number of iterations of the EM algorithm
 eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
 B = 100  ## number of bootstap samples
 ntrial = 5
-pvalue, Q, theta, eta_EM, cvm, cvm_sim, nu_EM, U, W, AIC, BIC, CAIC, AICc, HQC, LL, lambda_EM = hmm.GofHMMGen(y_binom, reg, family, max_iter, eps, B, ntrial)
+out_GoF_binom = hmm.GofHMMGen(y_binom, reg, family, max_iter, eps, B, ntrial)
 
 ## The model is valid if the pvalue is greater than 5.
-print('pvalue = ', pvalue) 
+print('pvalue = ', out_GoF_binom['pvalue']) 
 ```
 
 
