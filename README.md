@@ -36,7 +36,7 @@ Import the needed libraries for this example
 import scipy as sp
 import matplotlib.pyplot as plt
 import numpy as np
-from GenHMM1d import hmm 
+from GenHMM1d import hmm as hmm 
 ```
 
 **To generate observations from a particular model, one need to specify the following quantities**
@@ -89,12 +89,12 @@ plt.show()
 ```sh
 reg = 2  
 family = 'norm' 
-theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
-print('theta = ', theta)
-print('Q = ', Q)
-print('AIC = ', AIC)
-print('BIC = ', BIC)
-print('cvm = ', cvm)
+out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
+print('theta = ', out_est_norm1['theta'])
+print('Q = ', out_est_norm1['Q'])
+print('AIC = ', out_est_norm1['AIC'])
+print('BIC = ', out_est_norm1['BIC'])
+print('cvm = ', out_est_norm1['cvm'])
 ```
 
 **One could perform a goodness-of-fit test for the two regimes HMM norm with  **
@@ -135,13 +135,13 @@ print('pvalue = ', pvalue)
 
 reg = 2  
 family = 'norm' 
-theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
+out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
 
 ## The selected values for which we are interested in the probability of the regime
 ynew = np.array([0.5, 0.7, 1, -1]) 
 
 ## The forecasted probabilities
-forecastedprob = hmm.ForecastHMMeta(ynew, family, theta, Q, eta_EM[-1,0:reg])
+forecastedprob = hmm.ForecastHMMeta(ynew, family, out_est_norm1['theta'], out_est_norm1['Q'], out_est_norm1['eta_EM'][-1,0:reg])
 print(forecastedprob)
 ```
 
@@ -154,7 +154,7 @@ print(forecastedprob)
 
 reg = 2  
 family = 'norm' 
-theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
+out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
 
 ## The selected values for which we are interested in the pdf 
 range_y = np.arange(-5,5,0.1)
@@ -163,7 +163,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedpdf = hmm.ForecastHMMPdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+forecastedpdf = hmm.ForecastHMMPdf(range_y, family, out_est_norm1['theta'], out_est_norm1['Q'], out_est_norm1['eta_EM'][-1,0:reg], k)
 plt.plot(range_y, forecastedpdf[0:len(range_y),0])
 plt.plot(range_y, forecastedpdf[0:len(range_y),1])
 plt.plot(range_y, forecastedpdf[0:len(range_y),2])
@@ -181,7 +181,7 @@ plt.show()
 
 reg = 2  
 family = 'norm' 
-theta, Q, eta_EM, nu_EM, U, cvm, W, lambda_EM, LL, AIC, BIC, CAIC, AICc, HQC = hmm.EstHMMGen(y_norm, reg, family)
+out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
 
 ## The selected values for which we are interested in the pdf 
 range_y = np.arange(-5,5,0.1)
@@ -190,7 +190,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedcdf = hmm.ForecastHMMCdf(range_y, family, theta, Q, eta_EM[-1,0:reg], k)
+forecastedcdf = hmm.ForecastHMMCdf(range_y, family, out_est_norm1['theta'], out_est_norm1['Q'], out_est_norm1['eta_EM'][-1,0:reg], k)
 plt.plot(range_y, forecastedcdf[0:len(range_y),0])
 plt.plot(range_y, forecastedcdf[0:len(range_y),1])
 plt.plot(range_y, forecastedcdf[0:len(range_y),2])
