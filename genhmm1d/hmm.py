@@ -16,7 +16,13 @@ import multiprocessing
 
 class HMM:
     def alpha2theta(self, param, typeofparams):
+        '''
+        This function computes the constrained  parameters theta of a univariate distribution, from the unconstrained parameter alpha.
 
+        :param param: unconstrained parameters of the univariate distribution
+        :param typeofparams: type of parameters of the univariate distribution
+        :return: transformation of unconstrained parameters to constrained parameters
+        '''
 
         ## the typeofparams are :
 
@@ -115,7 +121,14 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def CDF(self, family, y, param, ntrial=0):
-
+        """
+        This function computes the cumulative distribution function (cdf) of a univariate distribution
+        :param family: distribution name
+        :param y: values at which the cdf is evaluated
+        :param param: parameters of the distribution
+        :param ntrial: additional parameter for some discrete distributions
+        :return:
+        """
 
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
@@ -494,7 +507,13 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def fitdistr(self, family, y, ntrial=0):
-
+        """
+        Fit distribution
+        :param family: distribution name
+        :param y: time series
+        :param ntrial: pertinent for some discrete distribution
+        :return: fitted distribution
+        """
 
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
@@ -885,7 +904,11 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def infodistr(self, family):
-
+        """
+        Return number of parameter and type of distribution
+        :param family: distribution name
+        :return: number of parameter and type of distribution
+        """
 
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
@@ -1276,7 +1299,14 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def PDF(self, family, y, param, ntrial=0):
-
+        """
+        This function computes the probability density function (pdf) of a univariate distribution
+        :param family: distribution name
+        :param y: time series
+        :param param: constrained parameter
+        :param ntrial: only for some discrete distributions
+        :return: probability density function
+        """
 
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
@@ -1654,7 +1684,14 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def PDFunc(self, family, y, param, ntrial=0):
-
+        """
+        This function computes the probability density function (pdf) of a univariate distribution
+        :param family: distribution name
+        :param y: time series
+        :param param: unconstrained parameter
+        :param ntrial: only for some discrete distributions
+        :return: probability density function
+        """
 
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
@@ -2033,6 +2070,13 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def SimMarkovChain(self, Q,n,eta0):
+        """
+        This function generates a Markov chain X(1), ..., X(n) with transition matrix Q, starting from a state eta0 or the uniform distribution on 1,..., r
+        :param Q: transition matrix
+        :param n: length of simulated time series
+        :param eta0: nitial value in 1,...,r.
+        :return: Markov chain
+        """
         r,p = Q.shape
 
         x = np.zeros((n,1))
@@ -2061,9 +2105,18 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def SimHMMGen(self, Q, family, theta, n, ntrial=0):
+        """
+        This function simulates observation from a univariate hidden Markov model
 
+        :param Q: transtion matrix
+        :param family: distribution name
+        :param theta: parameters
+        :param n: sample size
+        :param ntrial: parameter of some discrete distribution
+        :return: Simulated Hidden Markov Model
+        """
         r = Q.shape[0]
-        MC = self.SimMarkovChain(Q,n,1)
+        MC = self.SimMarkovChain(Q=Q,n=n,eta0=1)
 
         sim = np.zeros((n,r))
         simdata = np.zeros((n,1))
@@ -2452,6 +2505,15 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def SimUnivGen(self, family, theta, n, ntrial=0):
+        """
+        This function simulates observation from a univariate distribution
+
+        :param family: distribution name
+        :param theta: parameters
+        :param n: sample size
+        :param ntrial: parameter of some discrete distribution
+        :return: Simulated distribution
+        """
 
         if (n>1):
 
@@ -3202,7 +3264,13 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def theta2alpha(self, param,typeofparams):
+        '''
+        This function computes the unconstrained  parameters theta of a univariate distribution, from the constrained parameter alpha.
 
+        :param param: constrained parameters of the univariate distribution
+        :param typeofparams: type of parameters of the univariate distribution
+        :return: transformation of constrained parameters to unconstrained parameters
+        '''
         ## the typeofparams are :
 
         #  [] == 0
@@ -3299,8 +3367,18 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def LLEMStep(self, y,family,lambda_EM,theta):
+        '''
+        This function computes the log-likelihood
 
-        LL = -sum( np.multiply(lambda_EM, np.squeeze(np.log(self.PDFunc(family, y, theta)), -1) ) )
+        :param y: time series
+        :param family: distribution name
+        :param lambda_EM: conditional probabilities of being in regime k at time t given all observations
+        :param theta: parameters
+        :return: transformation of constrained parameters to unconstrained parameters
+        '''
+
+
+        LL = -sum( np.multiply(lambda_EM, np.squeeze(np.log(self.PDFunc(family=family, y=y, param=theta)), -1) ) )
 
         return(LL)
 
@@ -3308,6 +3386,17 @@ class HMM:
 
     ##=============================================================================
     def EMStep(self, y, family, theta, Q, ntrial, optimizer_alg):
+        """
+        This function perform EM optimization
+
+        :param y: time series
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param ntrial: parameter for some discrete distribution
+        :param optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+        :return:
+        """
 
         n = len(y)
         r, p = theta.shape
@@ -3320,7 +3409,7 @@ class HMM:
         Lambda_EM = np.zeros((r,r,n))
 
         for j in range(r):
-            f[0:n,j] = self.PDFunc(family, y, theta[j,0:p], ntrial).reshape(n)
+            f[0:n,j] = self.PDFunc(family=family, y=y, param=theta[j,0:p], ntrial=ntrial).reshape(n)
         #np.where(f[0:n,1] == 0)
         #np.where(f[0:n,0] == )
         #y[621]
@@ -3382,7 +3471,7 @@ class HMM:
             ## CA PREND TROP DE TEMPS SANS DOUTE A CAUSE DE LA FONCTION LAMBDA ??
 
             fun = lambda thetaa : -sum( np.multiply(lambda_EM[0:n,i],
-                                                        np.squeeze(np.log(self.PDFunc(family, y, thetaa, ntrial)), -1) ) )
+                                                        np.squeeze(np.log(self.PDFunc(family=family, y=y, param=thetaa, ntrial=ntrial)), -1) ) )
             if optimizer_alg == 'Nelder-Mead':
                 res = minimize(fun, theta[i,0:p], method='Nelder-Mead')  # 'Nelder-Mead'
             elif optimizer_alg == 'CG':
@@ -3408,7 +3497,12 @@ class HMM:
 
     ##=============================================================================
     def Sn1d(self, U):
+        """
+        his function computes the Cramer-von Mises statistic Sn for goodness-of-fit of the null hypothesis of a univariate uniform distrubtion over [0,1]
 
+        :param U: vector of pseudos-observations (approximating uniform)
+        :return: Cramer-von Mises statistic
+        """
         n = len(U)
         u = np.sort(U)
         t = (-0.5 + np.arange(1,n+1) ) / n
@@ -3421,7 +3515,14 @@ class HMM:
 
     ##=============================================================================
     def statsdistr(self, family, param, ntrial=0):
+        """
+        This function provide the first four univariate moments of several distributions
 
+        :param family: distribution name
+        :param param: parameters
+        :param ntrial: used for some discrete distribution
+        :return: univariate moments of several distributions
+        """
 
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
@@ -3795,6 +3896,20 @@ class HMM:
     ##=============================================================================
     def EstHMMGen(self, y, reg, family, percentiles=None, max_iter=10000, ninit=300, eps=10e-20, ntrial=0,
                   optimizer_alg='Nelder-Mead', init_rand=False):
+        """
+
+        :param y: time series
+        :param reg: number of regimes
+        :param family: distribution name
+        :param percentiles: used to calibrate the initial parameters
+        :param max_iter: maximum number of iteration
+        :param ninit: minimin number of iteration
+        :param eps: tolerance paramets
+        :param ntrial: used for some discrete parameter
+        :param optimizer_alg: optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+        :param init_rand: use to calibrate the initial parameters
+        :return: estimated HMM
+        """
         ## init_rand : if True, inialize the parameters of the HMM with 0.8% of the observations
         ## percentiles : a list that contains splits. Used to get initial parameters for each regime
         #               example : [0.5] ==> [0, 0.5] + ]0.5, 1]
@@ -3812,7 +3927,7 @@ class HMM:
 
         discreteFam = ['poisson', 'binom', 'geom', 'nbinom']
 
-        p, typeofparams = self.infodistr(family)
+        p, typeofparams = self.infodistr(family=family)
         theta0 = np.zeros((reg,p))
         alpha0 = np.zeros((reg,p))
 
@@ -3826,20 +3941,21 @@ class HMM:
                 if family not in discreteFam:
                     x = np.append(x,min(y))
                     x = np.append(x,max(y))
-                tempFit = self.fitdistr(family, x, ntrial)
+                tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
 
             else:
                 x = y[(y > np.percentile(y, percentiles[j])) & (y <= np.percentile(y, percentiles[j+1]))]
-                tempFit = self.fitdistr(family, x, ntrial)
+                tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
 
             theta0[j, 0:p] = tempFit
-            alpha0[j, 0:p] = self.theta2alpha(tempFit, typeofparams)
+            alpha0[j, 0:p] = self.theta2alpha(param=tempFit, typeofparams=typeofparams)
 
         Q0 = np.ones((reg, reg))/reg
 
         for k in range(ninit):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
-                self.EMStep(y, family, alpha0, Q0, ntrial, optimizer_alg)
+                self.EMStep(y=y, family=family, theta=alpha0, Q=Q0, ntrial=ntrial,
+                            optimizer_alg=optimizer_alg)
             Q0 = Qnew_EM
             alpha0 = alpha_new_EM
             #print(alpha0)
@@ -3849,7 +3965,8 @@ class HMM:
 
         for k in range(max_iter):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL = self.EMStep(
-                y, family, alpha0, Q0, ntrial, optimizer_alg)
+                y=y, family=family, theta=alpha0, Q=Q0, ntrial=ntrial,
+                optimizer_alg=optimizer_alg)
 
             sum1 = sum(sum(abs(alpha0)))
             sum2 = sum(sum(abs(alpha_new_EM-alpha0)))
@@ -3870,7 +3987,7 @@ class HMM:
 
         t_mean_s = np.zeros((reg))
         for j in range(reg):
-            t_mean_s[j], _, _, _ = self.statsdistr(family, theta[j, :])
+            t_mean_s[j], _, _, _ = self.statsdistr(family=family, param=theta[j, :])
         order = t_mean_s.argsort()
         theta = theta[order, :]
         temp_Q = Q[order,:]
@@ -3893,19 +4010,20 @@ class HMM:
         if family in discreteFam:
             u_Ros = np.random.uniform(0,1,n)
             for j in range(reg):
-                cdf_gof[0:n,j] = np.multiply((1-u_Ros), np.squeeze(self.CDF(family, y-0.7, theta[j,0:p],ntrial),-1)
+                cdf_gof[0:n,j] = np.multiply((1-u_Ros), np.squeeze(self.CDF(family=family, y=y-0.7,
+                                                                            param=theta[j,0:p], ntrial=ntrial),-1)
                                              ) +  np.multiply(u_Ros, np.squeeze(self.CDF(
-                    family, y, theta[j,0:p],ntrial),-1))
+                    family=family, y=y, param=theta[j,0:p],ntrial=ntrial),-1))
         else:
             for j in range(reg):
-                cdf_gof[0:n,j] = np.squeeze(self.CDF(family, y, theta[j,0:p]),-1)
+                cdf_gof[0:n,j] = np.squeeze(self.CDF(family=family, y=y, param=theta[j,0:p]),-1)
 
 
         eta00 = np.ones((1,reg))/reg
         w00 = np.concatenate((eta00, eta_EM), axis=0)
         W = w00[0:n,0:reg].dot(Q)
         U = np.sum( np.multiply(W, cdf_gof), -1 )
-        cvm = self.Sn1d(U)
+        cvm = self.Sn1d(U=U)
 
         pred_e = np.zeros((n,1))
         pred_l = np.zeros((n,1))
@@ -3923,7 +4041,7 @@ class HMM:
         skew_s = np.zeros((reg,1))
         kurt_s = np.zeros((reg,1))
         for j in range(reg):
-            mean_s[j], var_s[j], skew_s[j], kurt_s[j] = self.statsdistr(family, theta[j,0:p])
+            mean_s[j], var_s[j], skew_s[j], kurt_s[j] = self.statsdistr(family=family, param=theta[j,0:p])
 
         statistics[0:reg,0] = mean_s.squeeze(-1)
         statistics[0:reg,1] = var_s.squeeze(-1)**0.5
@@ -3958,7 +4076,19 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     def bootstrapfun(self, n, family, Q, theta, percentiles, max_iter=10000, eps=10e-4, ntrial=0):
+        """
+        This function is used to get the Cramer von-Mises statistics for the parametric bootstrap
 
+        :param n: sample size
+        :param family: distribution name
+        :param Q: transition matrix
+        :param theta: parameters
+        :param percentiles: used to calibrate the initial parameters
+        :param max_iter: maximum number of iteration
+        :param eps: tolerance
+        :param ntrial: used for some discrete parameters
+        :return: Cramer von-Mises statistics
+        """
         y1, sim, MC = self.SimHMMGen(Q=Q, family=family, theta=theta, n=int(n), ntrial=ntrial)
 
         reg = theta.shape[0]
@@ -3974,6 +4104,21 @@ class HMM:
     ##=============================================================================
 
     def GofHMMGen(self, y, reg, family, percentiles=None, max_iter=10000, eps=10e-4, B=100, ntrial=0):
+        """
+        This function performs the goodness of fit test.
+
+        :param y: time series
+        :param reg: number of regimes
+        :param family: distribution name
+        :param percentiles: used to calibrate the initial parameters
+        :param max_iter: maximum number of iteration
+        :param ninit: minimin number of iteration
+        :param eps: tolerance paramets
+        :param B: Number of bootstrap sample for the parametric bootstrap.
+        :param ntrial: used for some discrete parameter
+        :return: Goodness of fit p-values
+        """
+
 
         out = self.EstHMMGen(y=y, reg=reg, family=family, percentiles=percentiles, max_iter=max_iter, eps=eps,
                              ntrial=ntrial)
@@ -3997,6 +4142,16 @@ class HMM:
 
 
     def ForecastHMMeta(self, ynew, family, theta, Q, eta):
+        """
+        This function computes the predicted probabilities of the regimes for a new observation of a univariate HMM, given observations up to time n
+
+        :param ynew: new observations
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param eta: ector of the estimated probability of each regime at time n
+        :return: predicted probabilities of the regimes
+        """
 
         r = Q.shape[0]
         p = theta.shape[1]
@@ -4006,7 +4161,7 @@ class HMM:
         for j in range(r):
             for l in range(r):
                 etanew[0:n,j] = etanew[0:n,j] + eta[l] * Q[l,j]
-            etanew[0:n,j] = etanew[0:n,j] * self.PDF(family, ynew, theta[j,0:p])    ## numerateur
+            etanew[0:n,j] = etanew[0:n,j] * self.PDF(family=family, y=ynew, param=theta[j,0:p])    ## numerateur
 
         etanew = etanew/etanew.sum(axis=1)[:,None]
 
@@ -4014,6 +4169,8 @@ class HMM:
 
 
     def ForecastHMMeta_rolling(self, ynew_s, family, theta, Q, eta_initial):
+        """
+        """
 
         r = Q.shape[0]
         n = len(ynew_s)
@@ -4021,14 +4178,27 @@ class HMM:
             Warning("length of the observations should be greater than 1")
 
         etanew_s = np.zeros((n, r))
-        etanew_s[0,0:r] = self.ForecastHMMeta(ynew_s[0], family, theta, Q, eta_initial)
+        etanew_s[0,0:r] = self.ForecastHMMeta(ynew=ynew_s[0], family=family, theta=theta,
+                                              Q=Q, eta=eta_initial)
         for i in range(1, n):
-            etanew_s[i,0:r] = self.ForecastHMMeta(ynew_s[i], family, theta, Q, etanew_s[i-1,0:r])
+            etanew_s[i,0:r] = self.ForecastHMMeta(ynew=ynew_s[i], family=family, theta=theta,
+                                                  Q=Q, eta=etanew_s[i-1,0:r])
 
         return(etanew_s)
 
 
     def ForecastHMMPdf(self, y, family, theta, Q, eta, k=1):
+        """
+        This function computes the forecasted density function (with respect to Dirac(0)+Lesbesgue) of a univariate HMM for multiple horizons, given observations up to time n
+
+        :param y: points at which the pdf function is computed
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param eta: vector of the estimated probability of each regime at time n
+        :param k: prediction times (may be a vector of integers)
+        :return: values of the pdf function
+        """
 
         r = Q.shape[0]
         p = theta.shape[1]
@@ -4040,7 +4210,7 @@ class HMM:
                 Q_prime = np.linalg.matrix_power(Q, k[d])
                 for l in range(r):
                     for j in range(r):
-                        pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * self.PDF(family, y, theta[l,0:p])
+                        pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * self.PDF(family=family, y=y, param=theta[l,0:p])
 
         elif (type(k) == int):
             pdf = np.zeros((n, 1))
@@ -4048,12 +4218,23 @@ class HMM:
                 Q_prime = np.linalg.matrix_power(Q, k)
                 for l in range(r):
                     for j in range(r):
-                        pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * self.PDF(family, y, theta[l,0:p])
+                        pdf[0:n,d] = pdf[0:n,d] + eta[j] * Q_prime[j,l] * self.PDF(family=family, y=y, param=theta[l,0:p])
 
         return(pdf)
 
 
     def ForecastHMMCdf(self, y, family, theta, Q, eta, k=1):
+        """
+        This function computes the forecasted cumulative function (with respect to Dirac(0)+Lesbesgue) of a univariate HMM for multiple horizons, given observations up to time n
+
+        :param y: points at which the pdf function is computed
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param eta: vector of the estimated probability of each regime at time n
+        :param k: prediction times (may be a vector of integers)
+        :return: values of the cdf function
+        """
 
         r = Q.shape[0]
         p = theta.shape[1]
@@ -4065,7 +4246,7 @@ class HMM:
                 Q_prime = np.linalg.matrix_power(Q, k[d])
                 for l in range(r):
                     for j in range(r):
-                        cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * self.CDF(family, y, theta[l,0:p])
+                        cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * self.CDF(family=family, y=y, param=theta[l,0:p])
 
         elif (type(k) == int):
             cdf = np.zeros((n, 1))
@@ -4073,12 +4254,22 @@ class HMM:
                 Q_prime = np.linalg.matrix_power(Q, k)
                 for l in range(r):
                     for j in range(r):
-                        cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * self.CDF(family, y, theta[l,0:p])
+                        cdf[0:n,d] = cdf[0:n,d] + eta[j] * Q_prime[j,l] * self.CDF(family=family, y=y, param=theta[l,0:p])
 
         return(cdf)
 
 
     def ForecastHMMStatistics(self, family, theta, Q, eta, k=1):
+        """
+        This function computes the forecasted moments of the HMM
+
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param eta: vector of the estimated probability of each regime at time n
+        :param k: prediction times (may be a vector of integers)
+        :return: forecasted moments
+        """
 
         r = Q.shape[0]
         p = theta.shape[1]
@@ -4092,7 +4283,7 @@ class HMM:
                 Q_prime = np.linalg.matrix_power(Q, k[d])
                 for l in range(r):
                     for j in range(r):
-                        mean, var, skew, kurt = self.statsdistr(family, theta[l,0:p])
+                        mean, var, skew, kurt = self.statsdistr(family=family, param=theta[l,0:p])
                         mean_s[d] = mean_s[d] + eta[j] * Q_prime[j,l] * mean
                         var_s[d] = var_s[d] + eta[j] * Q_prime[j,l] * var
                         skew_s[d] = skew_s[d] + eta[j] * Q_prime[j,l] * skew
@@ -4107,7 +4298,7 @@ class HMM:
             Q_prime = np.linalg.matrix_power(Q, k)
             for l in range(r):
                 for j in range(r):
-                    mean, var, skew, kurt = self.statsdistr(family, theta[l,0:p])
+                    mean, var, skew, kurt = self.statsdistr(family=family, param=theta[l,0:p])
                     mean_s = mean_s + eta[j] * Q_prime[j,l] * mean
                     var_s = var_s + eta[j] * Q_prime[j,l] * var
                     skew_s = skew_s + eta[j] * Q_prime[j,l] * skew
@@ -4117,20 +4308,27 @@ class HMM:
 
 
     def RollingForecastHMM(self, ynew_s, family, theta, Q, eta_initial):
+        """
+        """
 
         r = Q.shape[0]
         n = len(ynew_s)
         y_hat = np.zeros((n,1))
-        etanew_s = self.ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial)
-        y_hat[0], __, __, __, = self.ForecastHMMStatistics(family, theta, Q, eta_initial)
+        etanew_s = self.ForecastHMMeta_rolling(ynew_s=ynew_s, family=family, theta=theta, Q=Q,
+                                               eta_initial=eta_initial)
+        y_hat[0], __, __, __, = self.ForecastHMMStatistics(family=family, theta=theta, Q=Q,
+                                                           eta=eta_initial)
 
         for i in range(1,n):
-            y_hat[i], __, __, __, = self.ForecastHMMStatistics(family, theta, Q, etanew_s[i-1])
+            y_hat[i], __, __, __, = self.ForecastHMMStatistics(family=family, theta=theta, Q=Q,
+                                                               eta=etanew_s[i-1])
 
         return(y_hat)
 
 
     def ForecastHMMRandom(self, family, theta, Q, eta, k=1):
+        """
+        """
 
         r = Q.shape[0]
         p = theta.shape[1]
@@ -4138,33 +4336,39 @@ class HMM:
         y_sample = 0
         for l in range(r):
             for j in range(r):
-                y_sample = y_sample + eta[j] * Q_prime[j,l] * self.SimUnivGen(family, theta[l,0:p], 1)
+                y_sample = y_sample + eta[j] * Q_prime[j,l] * self.SimUnivGen(family=family, theta=theta[l,0:p], n=1)
 
         return(y_sample)
 
 
     def RollingForecastHMM_byCum(self, ynew_s, family, theta, Q, eta_initial):
+        """
+        """
 
         r = Q.shape[0]
         n = len(ynew_s)
         y_hat = np.zeros((n,1))
-        etanew_s = self.ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial)
-        y_hat[0] = self.ForecastHMMRandom(family, theta, Q, eta_initial)
+        etanew_s = self.ForecastHMMeta_rolling(ynew_s=ynew_s, family=family, theta=theta, Q=Q,
+                                               eta_initial=eta_initial)
+        y_hat[0] = self.ForecastHMMRandom(family=family, theta=theta, Q=Q, eta=eta_initial)
 
         for i in range(1,n):
-            y_hat[i] = self.ForecastHMMRandom(family, theta, Q, etanew_s[i-1])
+            y_hat[i] = self.ForecastHMMRandom(family=family, theta=theta, Q=Q, eta=etanew_s[i-1])
 
         return(y_hat)
 
 
     def RollingForecastHMM_pred_e(self, ynew_s, family, theta, Q, eta_initial):
+        """
+        """
 
         r = Q.shape[0]
         n = len(ynew_s)
         y_hat = np.zeros((n,1))
         p = theta.shape[1]
 
-        etanew_s = self.ForecastHMMeta_rolling(ynew_s, family, theta, Q, eta_initial)
+        etanew_s = self.ForecastHMMeta_rolling(ynew_s=ynew_s, family=family, theta=theta, Q=Q,
+                                               eta_initial=eta_initial)
 
         pred_e = np.zeros((n,1))
         for i in range(n):
@@ -4173,7 +4377,7 @@ class HMM:
 
         for i in range(n):
             l = int(pred_e[i])
-            y_hat[i] = self.SimUnivGen(family, theta[l,0:p], 1)
+            y_hat[i] = self.SimUnivGen(family=family, theta=theta[l,0:p], n=1)
 
         return(y_hat)
 
