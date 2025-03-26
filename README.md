@@ -55,21 +55,18 @@ Q[0,1] = 0.3
 Q[1,0] = 0.2
 Q[1,1] = 0.8
 
-n = 1000
-
 family = 'binom'
 ntrial = 5
 theta_sim = np.array([[0.5],[0.75]])
 
-y_binom, __, __ = hmm.SimHMMGen(Q, family, theta_sim, n, ntrial)
+y_binom, __, __ = hmm.SimHMMGen(Q=Q, family=family, theta=theta_sim, n=n, ntrial=ntrial)
 plt.plot(y_binom)
 plt.show()
-
 
 family = 'laplace'
 theta_sim = np.array([[-0.5, 0.7],[0.2, 2.4]])
 
-y_laplace, __, __ = hmm.SimHMMGen(Q, family, theta_sim, n)
+y_laplace, __, __ = hmm.SimHMMGen(Q=Q, family=family, theta=theta_sim, n=n)
 plt.plot(y_laplace)
 plt.show()
 
@@ -77,7 +74,7 @@ plt.show()
 family = 'norm'
 theta_sim = np.array([[-0.5, 0.7],[0.2, 2.4]])
 
-y_norm, __, __ = hmm.SimHMMGen(Q, family, theta_sim, n)
+y_norm, __, __ = hmm.SimHMMGen(Q=Q, family=family, theta=theta_sim, n=n)
 plt.plot(y_norm)
 plt.show()
 
@@ -87,9 +84,9 @@ plt.show()
 **Given the previously simulated serie y_norm, one could fit a two regimes HMM with **
 
 ```sh
-reg = 2  
-family = 'norm' 
-out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
+reg = 2
+family = 'norm'
+out_est_norm1 = hmm.EstHMMGen(y=y_norm, reg=reg, family=family)
 print('theta = ', out_est_norm1['theta'])
 print('Q = ', out_est_norm1['Q'])
 print('AIC = ', out_est_norm1['AIC'])
@@ -101,11 +98,13 @@ print('cvm = ', out_est_norm1['cvm'])
 
 ```sh
 reg = 2
-family = 'norm' 
+family = 'norm'
 max_iter = 10000  ## maximum number of iterations of the EM algorithm
 eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
 B = 100  ## number of bootstap samples
-out_GoF_norm = hmm.GofHMMGen(y_norm, reg, family, max_iter, eps, B)
+percentiles = None
+out_GoF_norm = hmm.GofHMMGen(y=y_norm, reg=reg, family=family, percentiles=percentiles,
+                             max_iter=max_iter, eps=eps, B=B)
 
 ## The model is valid if the pvalue is greater than 5.
 print('pvalue = ', out_GoF_norm['pvalue']) 
@@ -120,8 +119,10 @@ family = 'binom'
 max_iter = 10000  ## maximum number of iterations of the EM algorithm
 eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
 B = 100  ## number of bootstap samples
+percentiles = None
 ntrial = 5
-out_GoF_binom = hmm.GofHMMGen(y_binom, reg, family, max_iter, eps, B, ntrial)
+out_GoF_binom = hmm.GofHMMGen(y=y_binom, reg=reg, family=family, percentiles=percentiles,
+                             max_iter=max_iter, eps=eps, B=B, ntrial=ntrial)
 
 ## The model is valid if the pvalue is greater than 5.
 print('pvalue = ', out_GoF_binom['pvalue']) 
@@ -135,13 +136,13 @@ print('pvalue = ', out_GoF_binom['pvalue'])
 
 reg = 2  
 family = 'norm' 
-out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
+out_est_norm1 = hmm.EstHMMGen(y=y_norm, reg=reg, family=family)
 
 ## The selected values for which we are interested in the probability of the regime
 ynew = np.array([0.5, 0.7, 1, -1]) 
 
 ## The forecasted probabilities
-forecastedprob = hmm.ForecastHMMeta(ynew, family, out_est_norm1['theta'], out_est_norm1['Q'], out_est_norm1['eta_EM'][-1,0:reg])
+forecastedprob = hmm.ForecastHMMeta(ynew=ynew, family=family, theta=out_est_norm1['theta'], Q=out_est_norm1['Q'], eta=out_est_norm1['eta_EM'][-1,0:reg])
 print(forecastedprob)
 ```
 
@@ -154,7 +155,7 @@ print(forecastedprob)
 
 reg = 2  
 family = 'norm' 
-out_est_norm1 = hmm.EstHMMGen(y_norm, reg, family)
+out_est_norm1 = hmm.EstHMMGen(y=y_norm, reg=reg, family=family)
 
 ## The selected values for which we are interested in the pdf 
 range_y = np.arange(-5,5,0.1)
@@ -163,7 +164,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedpdf = hmm.ForecastHMMPdf(range_y, family, out_est_norm1['theta'], out_est_norm1['Q'], out_est_norm1['eta_EM'][-1,0:reg], k)
+forecastedpdf = hmm.ForecastHMMPdf(y=range_y, family=family, theta=out_est_norm1['theta'], Q=out_est_norm1['Q'], eta=out_est_norm1['eta_EM'][-1,0:reg], k=k)
 plt.plot(range_y, forecastedpdf[0:len(range_y),0])
 plt.plot(range_y, forecastedpdf[0:len(range_y),1])
 plt.plot(range_y, forecastedpdf[0:len(range_y),2])
@@ -190,7 +191,7 @@ range_y = np.arange(-5,5,0.1)
 k = [1,2,5]
 
 ## The forecasted probabilities
-forecastedcdf = hmm.ForecastHMMCdf(range_y, family, out_est_norm1['theta'], out_est_norm1['Q'], out_est_norm1['eta_EM'][-1,0:reg], k)
+forecastedcdf = hmm.ForecastHMMCdf(y=range_y, family=family, theta=out_est_norm1['theta'], Q=out_est_norm1['Q'], eta=out_est_norm1['eta_EM'][-1,0:reg], k=k)
 plt.plot(range_y, forecastedcdf[0:len(range_y),0])
 plt.plot(range_y, forecastedcdf[0:len(range_y),1])
 plt.plot(range_y, forecastedcdf[0:len(range_y),2])
