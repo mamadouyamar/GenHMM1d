@@ -15,7 +15,7 @@ from joblib import Parallel, delayed
 import multiprocessing
 
 class HMM:
-    def alpha2theta(self, family,param,typeofparams):
+    def alpha2theta(self, param, typeofparams):
 
 
         ## the typeofparams are :
@@ -3201,7 +3201,7 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
-    def theta2alpha(self, family,param,typeofparams):
+    def theta2alpha(self, param,typeofparams):
 
         ## the typeofparams are :
 
@@ -3833,7 +3833,7 @@ class HMM:
                 tempFit = self.fitdistr(family, x, ntrial)
 
             theta0[j, 0:p] = tempFit
-            alpha0[j, 0:p] = self.theta2alpha(family, tempFit, typeofparams)
+            alpha0[j, 0:p] = self.theta2alpha(tempFit, typeofparams)
 
         Q0 = np.ones((reg, reg))/reg
 
@@ -3866,7 +3866,7 @@ class HMM:
 
         theta = np.zeros((reg,p))
         for j in range(reg):
-            theta[j,0:p] = self.alpha2theta(family,alpha[j,0:p],typeofparams)
+            theta[j,0:p] = self.alpha2theta(alpha[j,0:p],typeofparams)
 
         t_mean_s = np.zeros((reg))
         for j in range(reg):
@@ -3957,38 +3957,41 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
-    def bootstrapfun(self, n, family, Q, theta, max_iter=10000, eps=10e-4, ntrial=0):
+    def bootstrapfun(self, n, family, Q, theta, percentiles, max_iter=10000, eps=10e-4, ntrial=0):
 
-        y1, sim, MC = self.SimHMMGen(Q, family, theta, int(n), ntrial)
+        y1, sim, MC = self.SimHMMGen(Q=Q, family=family, theta=theta, n=int(n), ntrial=ntrial)
 
         reg = theta.shape[0]
 
-        out = self.EstHMMGen(y1, reg, family, max_iter, eps, ntrial)
+        out = self.EstHMMGen(y=y1, reg=reg, family=family, percentiles=percentiles,
+                             max_iter=max_iter, eps=eps, ntrial=ntrial)
 
-        return(out['cvm'])
+        return out['cvm']
 
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
 
-    def GofHMMGen(self, y, reg, family, max_iter=10000, eps=10e-4, B=100, ntrial=0):
+    def GofHMMGen(self, y, reg, family, percentiles=None, max_iter=10000, eps=10e-4, B=100, ntrial=0):
 
-        out = self.EstHMMGen(y, reg, family, max_iter, eps, ntrial)
+        out = self.EstHMMGen(y=y, reg=reg, family=family, percentiles=percentiles, max_iter=max_iter, eps=eps,
+                             ntrial=ntrial)
 
         cvm_sim = np.zeros((B,1))
         n = len(y)
 
         n_args = np.ones(B)*n
+        n_args = [int(val) for val in n_args]
 
         print("First estimation done, cvm = ", out['cvm'])
 
         num_cores = multiprocessing.cpu_count()
-        cvm_sim=Parallel(n_jobs=num_cores, verbose=10)(delayed(self.bootstrapfun)(
-            i, family, out['Q'], out['theta'], max_iter, eps, ntrial)for i in n_args)
+        cvm_sim = Parallel(n_jobs=num_cores, verbose=10)(delayed(self.bootstrapfun)(
+            int(i), family, out['Q'], out['theta'], percentiles, max_iter, eps, ntrial) for i in n_args)
         pvalue = 100*np.mean(cvm_sim>out['cvm'])
 
-        out['pvalue'] =pvalue
+        out['pvalue'] = pvalue
 
         return out
 
