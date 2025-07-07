@@ -1696,7 +1696,7 @@ class HMM:
         #===================================
         if family =='alpha':  ## [R+] ;     support [R+]
 
-                f =  stats.alpha.pdf(y, np.exp(param[0]), loc=param[1],
+                f = stats.alpha.pdf(y, np.exp(param[0]), loc=param[1],
                                              scale=np.exp(param[2]))
 
 
@@ -3409,7 +3409,7 @@ class HMM:
         Lambda_EM = np.zeros((r,r,n))
 
         for j in range(r):
-            f[0:n,j] = self.PDFunc(family=family, y=y, param=theta[j,0:p], ntrial=ntrial).reshape(n)
+            f[0:n,j] = self.PDFunc(family=family, y=y, param=theta[j, 0:p], ntrial=ntrial).reshape(n)
         #np.where(f[0:n,1] == 0)
         #np.where(f[0:n,0] == )
         #y[621]
@@ -3894,8 +3894,9 @@ class HMM:
 
 
     ##=============================================================================
-    def EstHMMGen(self, y, reg, family, percentiles=None, max_iter=10000, ninit=300, eps=10e-20, ntrial=0,
-                  optimizer_alg='Nelder-Mead', init_rand=False):
+    def EstHMMGen(self, y, reg, family, percentiles=None, max_iter=10000, ninit=50, eps=10e-20, ntrial=0,
+                  optimizer_alg='Nelder-Mead', init_rand=False,
+                  initial_Q=None, initial_theta=None):
         """
 
         :param y: time series
@@ -3928,29 +3929,38 @@ class HMM:
         discreteFam = ['poisson', 'binom', 'geom', 'nbinom']
 
         p, typeofparams = self.infodistr(family=family)
-        theta0 = np.zeros((reg,p))
-        alpha0 = np.zeros((reg,p))
+        theta0 = np.zeros((reg, p))
+        alpha0 = np.zeros((reg, p))
 
-        for j in range(reg):
-            if percentiles == None or isinstance(percentiles, list) == False:
-                ind = j*n0+ind0
-                if init_rand==False:
-                    x = y[ind]
+        if initial_theta is None:
+            for j in range(reg):
+                if percentiles == None or isinstance(percentiles, list) == False:
+                    ind = j*n0+ind0
+                    if init_rand==False:
+                        x = y[ind]
+                    else:
+                        x = y[np.random.choice(n, int(np.round(0.8*n)), replace=False)]
+                    if family not in discreteFam:
+                        x = np.append(x,min(y))
+                        x = np.append(x,max(y))
+                    tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
+
                 else:
-                    x = y[np.random.choice(n, int(np.round(0.8*n)), replace=False)]
-                if family not in discreteFam:
-                    x = np.append(x,min(y))
-                    x = np.append(x,max(y))
-                tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
+                    x = y[(y > np.percentile(y, percentiles[j])) & (y <= np.percentile(y, percentiles[j+1]))]
+                    tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
 
-            else:
-                x = y[(y > np.percentile(y, percentiles[j])) & (y <= np.percentile(y, percentiles[j+1]))]
-                tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
+                theta0[j, 0:p] = tempFit
+                alpha0[j, 0:p] = self.theta2alpha(param=tempFit, typeofparams=typeofparams)
 
-            theta0[j, 0:p] = tempFit
-            alpha0[j, 0:p] = self.theta2alpha(param=tempFit, typeofparams=typeofparams)
+        else:
+            theta0 = initial_theta
+            for j in range(reg):
+                alpha0[j, 0:p] = self.theta2alpha(param=theta0[j, :], typeofparams=typeofparams)
 
-        Q0 = np.ones((reg, reg))/reg
+        if initial_Q is None:
+            Q0 = np.ones((reg, reg))/reg
+        else:
+            Q0 = initial_Q
 
         for k in range(ninit):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
@@ -3961,7 +3971,6 @@ class HMM:
             #print(alpha0)
             #print(Q0)
             #print(k)
-
 
         for k in range(max_iter):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL = self.EMStep(
@@ -3999,11 +4008,11 @@ class HMM:
         numel = theta.shape[0]*theta.shape[1]
         numParam = (numel+reg**2)
 
-        AIC = (2 *  numParam - 2*LL) / n
-        BIC = (np.log(n) *  numParam - 2*LL) / n
-        CAIC = ( (np.log(n)+1) * numParam - 2*LL) / n
+        AIC = (2 * numParam - 2 * LL) / n
+        BIC = (np.log(n) * numParam - 2 * LL) / n
+        CAIC = ((np.log(n)+1) * numParam - 2 * LL) / n
         AICc = AIC + (2*numParam*(numParam+1))/(n-numParam-1)
-        HQC = (2*numParam*np.log(np.log(n)) - 2*LL)/n
+        HQC = (2 * numParam*np.log(np.log(n)) - 2 * LL)/n
 
         cdf_gof = np.zeros((n, reg))
 
@@ -4048,6 +4057,8 @@ class HMM:
         statistics[0:reg,2] = skew_s.squeeze(-1)
         statistics[0:reg,3] = kurt_s.squeeze(-1)
 
+        time_in_each_reg = np.linalg.matrix_power(Q, 1000)[0, :]
+
         out = {}
         out['theta'] = theta
         out['Q'] = Q
@@ -4066,6 +4077,7 @@ class HMM:
         out['pred_e'] = pred_e
         out['pred_l'] = pred_l
         out['statistics'] = statistics
+        out['time_in_each_reg'] = time_in_each_reg
 
         return out
 
@@ -4382,5 +4394,357 @@ class HMM:
         return(y_hat)
 
 
+    def EMStep_fixed_last_reg(self, y, family, theta, Q, ntrial, optimizer_alg):
+        """
+        This function perform EM optimization conditional on keeping the same values for the last regime
+
+        :param y: time series
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param ntrial: parameter for some discrete distribution
+        :param optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+        :return:
+        """
+
+        n = len(y)
+        r, p = theta.shape
+        eta_bar_EM = np.zeros((n,r))
+        eta_EM = np.zeros((n,r))
+        lambda_EM = np.zeros((n,r))
+        Lambda_EM = np.zeros((n,r))
+        f = np.zeros((n,r))
+        Z = np.zeros((n,1))
+        Lambda_EM = np.zeros((r,r,n))
+
+        for j in range(r):
+            f[0:n,j] = self.PDFunc(family=family, y=y, param=theta[j, 0:p], ntrial=ntrial).reshape(n)
+
+        ## eta_bar_EM
+        eta_bar_EM[n-1, 0:r] = 1/r
+        for k in range(n-1):
+            i = n-2-k
+            j = i+1
+            v = np.multiply(eta_bar_EM[j, 0:r], f[j, 0:r]).dot(np.transpose(Q))
+            eta_bar_EM[i, 0:r] = v/sum(v)
+
+        ## eta_EM
+        eta0 = np.ones((1, r))/r
+        v = np.multiply( (eta0.dot(Q)), f[0, 0:r])
+        Z[0] = sum(sum(v))
+        eta_EM[0,0:r] = v/Z[0]
+
+        for i in range(1,n):
+            v = np.multiply((eta_EM[i-1,0:r].dot(Q)), f[i,0:r])
+            Z[i] = sum(v)
+            eta_EM[i,0:r] = v/Z[i]
+
+        LL = sum(np.log(Z))
+
+        ## lambda_EM
+        v = np.multiply(eta_EM, eta_bar_EM)
+        sv0 = np.sum(v, axis=-1)
+
+        for j in range(r):
+            lambda_EM[0:n,j] = np.divide(v[0:n,j] , sv0)
+
+        ## Lambda
+        gc = np.multiply(eta_bar_EM, f)
+        M = np.multiply(Q, np.multiply(np.transpose(eta0), gc[0,0:r]) )
+        MM = sum(sum(M))
+        Lambda_EM[0:r,0:r,0] = M/MM
+
+        for i in range(1,n):
+            eta_reshape = np.transpose(np.expand_dims(eta_EM[i-1,0:r], 0))
+            gc_reshape = np.expand_dims(gc[i,0:r], 0)
+            M = np.multiply( Q , eta_reshape.dot(gc_reshape) )
+            MM = sum(sum(M))
+            Lambda_EM[0:r,0:r,i] = M/MM
+
+        nu_EM = np.mean(lambda_EM)
+
+        Qnew_EM = Q
+
+        for j in range(r):
+            sv = np.sum(Lambda_EM[j,0:r,0:n], axis=-1)
+            ssv = sum(sv)
+            Qnew_EM[j,0:r] = sv/ssv
+
+        theta_new_EM = theta
+        for i in range(r-1): ## I do not optimize on the last regimes
+
+            fun = lambda thetaa : -sum(np.multiply(lambda_EM[0:n,i],
+                                                    np.squeeze(np.log(self.PDFunc(family=family,
+                                                                                  y=y,
+                                                                                  param=thetaa,
+                                                                                  ntrial=ntrial)),
+                                                               -1)
+                                                    )
+                                        )
+            if optimizer_alg == 'Nelder-Mead':
+                res = minimize(fun, theta[i, 0:p], method='Nelder-Mead')  # 'Nelder-Mead'
+            elif optimizer_alg == 'CG':
+                res = minimize(fun, theta[i, 0:p], method='CG')
+            elif optimizer_alg == 'BFGS':
+                res = minimize(fun, theta[i, 0:p], method='BFGS')
+            elif optimizer_alg == 'L-BFGS-B':
+                res = minimize(fun, theta[i, 0:p], method='L-BFGS-B')
+            else:
+                raise Exception ('not recognized optimization algorithm')
+            theta_new_EM[i,0:p] = res.x
 
 
+        return (nu_EM, theta_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL)
+
+
+    def EstHMMGen_fixed_last_reg(self, y, family, theta, Q, max_iter=100, ninit=5, eps=10e-20, ntrial=0,
+                                 optimizer_alg='Nelder-Mead'):
+        """
+
+        """
+
+        n = len(y)
+        p, typeofparams = self.infodistr(family=family)
+        reg = theta.shape[0]
+        alpha0 = np.zeros((reg, p))
+        for j in range(reg):
+            alpha0[j, 0:p] = self.theta2alpha(theta[j, 0:p], typeofparams)
+        Q0 = Q
+
+        for k in range(ninit):
+            nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
+                self.EMStep_fixed_last_reg(y=y, family=family, theta=alpha0, Q=Q0, ntrial=ntrial,
+                                           optimizer_alg=optimizer_alg)
+            Q0 = Qnew_EM
+            alpha0 = alpha_new_EM
+            #print(alpha0)
+            #print(Q0)
+            #print(k)
+
+        for k in range(max_iter):
+            nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
+                self.EMStep_fixed_last_reg(y=y, family=family, theta=alpha0, Q=Q0, ntrial=ntrial,
+                                           optimizer_alg=optimizer_alg)
+
+            sum1 = sum(sum(abs(alpha0)))
+            sum2 = sum(sum(abs(alpha_new_EM-alpha0)))
+
+            if (sum2 < sum1 * reg * eps):
+                break
+
+            Q0 = Qnew_EM
+            alpha0 = alpha_new_EM
+
+        alpha = alpha_new_EM
+        Q = Qnew_EM
+
+        theta = np.zeros((reg,p))
+        for j in range(reg):
+            theta[j, 0:p] = self.alpha2theta(alpha[j, 0:p], typeofparams)
+
+        t_mean_s = np.zeros((reg))
+        for j in range(reg):
+            t_mean_s[j], _, _, _ = self.statsdistr(family=family, param=theta[j, :])
+        order = t_mean_s.argsort()
+        theta = theta[order, :]
+        temp_Q = Q[order,:]
+        Q = temp_Q[:,order]
+        eta_EM = eta_EM[:, order]
+        lambda_EM = lambda_EM[:, order]
+        # Lambda_EM = Lambda_EM[:, order]
+
+        numel = theta.shape[0]*theta.shape[1]
+        numParam = (numel+reg**2)
+
+        AIC = (2 * numParam - 2 * LL) / n
+        BIC = (np.log(n) * numParam - 2 * LL) / n
+        CAIC = ((np.log(n)+1) * numParam - 2 * LL) / n
+        AICc = AIC + (2*numParam*(numParam+1))/(n-numParam-1)
+        HQC = (2 * numParam*np.log(np.log(n)) - 2 * LL)/n
+
+        cdf_gof = np.zeros((n, reg))
+
+        discreteFam = ['poisson', 'binom', 'geom', 'nbinom']
+        if family in discreteFam:
+            u_Ros = np.random.uniform(0,1,n)
+            for j in range(reg):
+                cdf_gof[0:n,j] = np.multiply((1-u_Ros), np.squeeze(self.CDF(family=family, y=y-0.7,
+                                                                            param=theta[j,0:p], ntrial=ntrial),-1)
+                                             ) + np.multiply(u_Ros, np.squeeze(self.CDF(
+                    family=family, y=y, param=theta[j,0:p],ntrial=ntrial),-1))
+        else:
+            for j in range(reg):
+                cdf_gof[0:n,j] = np.squeeze(self.CDF(family=family, y=y, param=theta[j,0:p]),-1)
+
+
+        eta00 = np.ones((1,reg))/reg
+        w00 = np.concatenate((eta00, eta_EM), axis=0)
+        W = w00[0:n,0:reg].dot(Q)
+        U = np.sum( np.multiply(W, cdf_gof), -1 )
+        cvm = self.Sn1d(U=U)
+
+        pred_e = np.zeros((n, 1))
+        pred_l = np.zeros((n, 1))
+        for i in range(n):
+            bb_e = np.argsort(eta_EM[i, 0:reg])
+            pred_e[i] = bb_e[-1]
+            bb_l = np.argsort(lambda_EM[i, 0:reg])
+            pred_l[i] = bb_l[-1]
+        pred_e = pred_e+1
+        pred_l = pred_l+1
+
+        statistics = np.zeros((reg,4))
+        mean_s = np.zeros((reg,1))
+        var_s = np.zeros((reg,1))
+        skew_s = np.zeros((reg,1))
+        kurt_s = np.zeros((reg,1))
+        for j in range(reg):
+            mean_s[j], var_s[j], skew_s[j], kurt_s[j] = self.statsdistr(family=family, param=theta[j,0:p])
+
+        statistics[0:reg,0] = mean_s.squeeze(-1)
+        statistics[0:reg,1] = var_s.squeeze(-1)**0.5
+        statistics[0:reg,2] = skew_s.squeeze(-1)
+        statistics[0:reg,3] = kurt_s.squeeze(-1)
+
+        time_in_each_reg = np.linalg.matrix_power(Q, 1000)[0, :]
+
+        out = {}
+        out['theta'] = theta
+        out['Q'] = Q
+        out['eta_EM'] = eta_EM
+        out['nu_EM'] = nu_EM
+        out['U'] = U
+        out['cvm'] = cvm
+        out['W'] = W
+        out['lambda_EM'] = lambda_EM
+        out['LL'] = LL
+        out['AIC'] = AIC
+        out['BIC'] = BIC
+        out['CAIC'] = CAIC
+        out['AICc'] = AICc
+        out['HQC'] = HQC
+        out['pred_e'] = pred_e
+        out['pred_l'] = pred_l
+        out['statistics'] = statistics
+        out['time_in_each_reg'] = time_in_each_reg
+
+        return out
+
+
+
+    def LL_eta(self, unc_theta_last, y, family, Q, ntrial):
+        """
+        This function the log-likelihood conditional on keeping the same values for the last regime
+
+        :param y: time series
+        :param family: distribution name
+        :param Q: transition matrix
+        :param ntrial: parameter for some discrete distribution
+        :return:
+        """
+
+        n = len(y)
+        r, p = unc_theta_last.shape
+        eta_bar_EM = np.zeros((n, r))
+        eta_EM = np.zeros((n, r))
+        f = np.zeros((n, r))
+        Z = np.zeros((n, 1))
+
+        for j in range(r):
+            f[0:n, j] = self.PDFunc(family=family, y=y, param=unc_theta_last[j, 0:p], ntrial=ntrial).reshape(n)
+
+        ## eta_bar_EM
+        eta_bar_EM[n-1, 0:r] = 1/r
+        for k in range(n-1):
+            i = n-2-k
+            j = i+1
+            v = np.multiply(eta_bar_EM[j, 0:r], f[j, 0:r]).dot(np.transpose(Q))
+            eta_bar_EM[i, 0:r] = v/sum(v)
+
+        ## eta_EM
+        eta0 = np.ones((1, r))/r
+        v = np.multiply((eta0.dot(Q)), f[0, 0:r])
+        Z[0] = sum(sum(v))
+        eta_EM[0, 0:r] = v/Z[0]
+
+        for i in range(1,n):
+            v = np.multiply((eta_EM[i-1, 0:r].dot(Q)), f[i, 0:r])
+            Z[i] = sum(v)
+            eta_EM[i, 0:r] = v/Z[i]
+
+        LL = sum(np.log(Z))
+
+        return LL, eta_EM
+
+
+    #
+    # def get_Q_fixed_last_reg(self, y, family, theta, Q, ntrial):
+    #     """
+    #     This function perform EM optimization conditional on keeping the same values for the last regime
+    #
+    #     :param y: time series
+    #     :param family: distribution name
+    #     :param theta: parameters
+    #     :param Q: transition matrix
+    #     :param ntrial: parameter for some discrete distribution
+    #     :param optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+    #     :return:
+    #     """
+    #
+    #     n = len(y)
+    #     r, p = theta.shape
+    #     eta_bar_EM = np.zeros((n,r))
+    #     eta_EM = np.zeros((n,r))
+    #     lambda_EM = np.zeros((n,r))
+    #     Lambda_EM = np.zeros((n,r))
+    #     f = np.zeros((n,r))
+    #     Z = np.zeros((n,1))
+    #     Lambda_EM = np.zeros((r,r,n))
+    #
+    #     for j in range(r):
+    #         f[0:n,j] = self.PDFunc(family=family, y=y, param=theta[j, 0:p], ntrial=ntrial).reshape(n)
+    #
+    #     ## eta_bar_EM
+    #     eta_bar_EM[n-1, 0:r] = 1/r
+    #     for k in range(n-1):
+    #         i = n-2-k
+    #         j = i+1
+    #         v = np.multiply(eta_bar_EM[j, 0:r], f[j, 0:r]).dot(np.transpose(Q))
+    #         eta_bar_EM[i, 0:r] = v/sum(v)
+    #
+    #     ## eta_EM
+    #     eta0 = np.ones((1, r))/r
+    #     v = np.multiply( (eta0.dot(Q)), f[0, 0:r])
+    #     Z[0] = sum(sum(v))
+    #     eta_EM[0,0:r] = v/Z[0]
+    #
+    #     for i in range(1,n):
+    #         v = np.multiply((eta_EM[i-1,0:r].dot(Q)), f[i,0:r])
+    #         Z[i] = sum(v)
+    #         eta_EM[i,0:r] = v/Z[i]
+    #
+    #     LL = sum(np.log(Z))
+    #
+    #     ## lambda_EM
+    #     v = np.multiply(eta_EM, eta_bar_EM)
+    #     sv0 = np.sum(v, axis=-1)
+    #
+    #     for j in range(r):
+    #         lambda_EM[0:n,j] = np.divide(v[0:n,j] , sv0)
+    #
+    #     ## Lambda
+    #     gc = np.multiply(eta_bar_EM, f)
+    #     M = np.multiply(Q, np.multiply(np.transpose(eta0), gc[0,0:r]) )
+    #     MM = sum(sum(M))
+    #     Lambda_EM[0:r,0:r,0] = M/MM
+    #
+    #     for i in range(1,n):
+    #         eta_reshape = np.transpose(np.expand_dims(eta_EM[i-1,0:r], 0))
+    #         gc_reshape = np.expand_dims(gc[i,0:r], 0)
+    #         M = np.multiply( Q , eta_reshape.dot(gc_reshape) )
+    #         MM = sum(sum(M))
+    #         Lambda_EM[0:r,0:r,i] = M/MM
+    #
+    #     nu_EM = np.mean(lambda_EM)
+    #
+    #     Qnew_EM = Q

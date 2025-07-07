@@ -1,0 +1,485 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep 22 23:13:28 2020
+
+@author: 49009427
+"""
+import scipy as sp
+import scipy.stats as stats
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+from scipy.optimize import minimize
+import pandas as pd
+
+
+class ARHMM:
+
+    def SimMarkovChain(self, Q, n, eta0):
+        """
+        This function generates a Markov chain X(1), ..., X(n) with transition matrix Q, starting from a state eta0 or the uniform distribution on 1,..., r
+        :param Q: transition matrix
+        :param n: length of simulated time series
+        :param eta0: nitial value in 1,...,r.
+        :return: Markov chain
+        """
+        r,p = Q.shape
+
+        x = np.zeros((n,1))
+        x0 = np.zeros((n,r))
+
+        ind = eta0
+
+        if r > 1:
+            for k in range(r):
+                x0[0:n,k] = np.random.choice(r, n, p=Q[k,])
+            for i in range(n):
+                x[i] = x0[i][int(ind)]
+                ind = int(x[i])
+        else:
+            x[0:n] = 0
+
+        MC = x
+
+        return(MC)
+
+
+    ##=============================================================================
+    ##=============================================================================
+    ##=============================================================================
+    ##=============================================================================
+    def SimARXHMMGen(self, Q, theta, n, family='norm'):
+        """
+        This function simulates observation from a univariate hidden Markov model
+
+        :param Q: transtion matrix
+        :param family: 'norm', 'skewnorm'
+        :param theta: parameters
+        :param n: sample size
+        :param p: # of lags;
+        :return: Simulated Hidden Markov Model
+        """
+        y = np.zeros(n)
+        reg = Q.shape[0]
+        sim = np.full((n,reg), np.nan)
+        MC = np.zeros(n, dtype=int)
+
+        if reg >= 2:
+            MC = self.SimMarkovChain(Q=Q, n=n, eta0=1)
+        else:
+            MC[:(n+1)] = 1
+
+        if family == 'norm':  ## [] ;     support [R]
+            p = theta.shape[1] - 2
+            for j in range(reg):
+                _, a = theta.shape
+                d = 0
+                sim = np.zeros((n, reg))
+                sim[0, :] = theta[int(MC[0][0]), 0] + np.random.randn() * theta[int(MC[0][0]), 1]
+                y[:max(p, 1)] = sim[0, 0]
+
+                for i in range(max(p, 1), n):
+                    epsilon_i = np.random.normal(0, 1)
+                    for j in range(reg):
+                        if p > 0 and d == 0:
+                            sim[i, j] = theta[j, 0] + np.dot(theta[j, 1:(p+1)], y[(i-p):i]) +\
+                                        theta[j, -1] * epsilon_i
+                        elif p == 0 and d == 0:
+                            sim[i, j] = theta[j, 0] + theta[j, 1] * epsilon_i
+
+                    y[i] = sim[i, int(MC[i][0])]
+
+        return (y, sim, MC)
+
+
+    def dens_gauss(self, y, theta, Z_augmented):
+        if len(Z_augmented.shape) == 1:
+            n_Z = Z_augmented.shape[0]
+            d_Z_aug = 1
+        else:
+            n_Z, d_Z_aug = Z_augmented.shape
+            d_Z_aug += 1
+        d_Z = d_Z_aug - 1
+        n = len(y)
+        mu = np.zeros(n)
+        d_X = len(theta) - 1 - d_Z
+
+        if d_Z_aug == 1:
+            p = d_X - 1
+            d_Z = 0
+
+        if d_X > 1 and d_Z == 0:
+            for i in range(p+1, n):
+                mu[i] = np.dot(np.concatenate([[1], y[(i-p):i]]),
+                               theta[:-1])
+        elif d_X == 1:
+            for i in range(p+1, n):
+                mu[i] = theta[0]
+
+        y_r = y[p:]
+        mu_r = mu[p:]
+
+        f = stats.norm.pdf(y_r, mu_r, np.exp(theta[-1]))
+
+        return f
+
+
+    def cum_gauss(self, y, theta, Z_augmented):
+        if len(Z_augmented.shape) == 1:
+            n_Z = Z_augmented.shape[0]
+            d_Z_aug = 1
+        else:
+            n_Z, d_Z_aug = Z_augmented.shape
+            d_Z_aug += 1
+        d_Z = d_Z_aug - 1
+        n = len(y)
+        mu = np.zeros(n)
+        d_X = len(theta) - 1 - d_Z
+
+        if d_Z_aug == 1:
+            p = d_X - d_Z_aug
+            d_Z = 0
+
+        if d_X > 1 and d_Z == 0:
+            for i in range(p+1, n):
+                mu[i] = np.dot(np.concatenate([[1], y[(i-p):i]]),
+                               theta[:-1])
+        elif d_X == 1:
+            for i in range(p+1, n):
+                mu[i] = theta[0]
+
+        y_r = y[p:]
+        mu_r = mu[p:]
+
+        F = stats.norm.cdf(y_r, mu_r, theta[-1])
+
+        return F
+
+
+
+
+    ##=============================================================================
+    def EMStep_ar(self, y, family, theta, Q, p_AR, Z, optimizer_alg):
+        """
+        This function perform EM optimization
+
+        :param y: time series
+        :param family: distribution name
+        :param theta: parameters
+        :param Q: transition matrix
+        :param optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+        :return:
+        """
+
+        n = len(y) - p_AR
+        r, p = theta.shape
+        eta_bar_EM = np.zeros((n,r))
+        eta_EM = np.zeros((n,r))
+        lambda_EM = np.zeros((n,r))
+        Lambda_EM = np.zeros((n,r))
+        f = np.zeros((n,r))
+        Z_i = np.zeros((n,1))
+        Lambda_EM = np.zeros((r,r,n))
+
+        if family == 'norm':
+            for j in range(r):
+                f[0:n, j] = self.dens_gauss(y=y, theta=theta[j, :], Z_augmented=Z)
+
+        ## eta_bar_EM
+        eta_bar_EM[n-1,0:r] = 1/r
+        for k in range(n-1):
+            i = n-2-k
+            j = i+1
+            v = np.multiply(eta_bar_EM[j,0:r], f[j,0:r]).dot(np.transpose(Q))
+            eta_bar_EM[i,0:r] = v/sum(v)
+
+        ## eta_EM
+        eta0 = np.ones((1,r))/r
+        v = np.multiply( ( eta0.dot(Q) ), f[0,0:r])
+        Z_i[0] = sum(sum(v))
+        eta_EM[0,0:r] = v/Z_i[0]
+
+        for i in range(1,n):
+            v = np.multiply( ( eta_EM[i-1,0:r].dot(Q) ), f[i,0:r] )
+            Z_i[i] = sum(v)
+            eta_EM[i,0:r] = v/Z_i[i]
+
+        LL = sum(np.log(Z_i))
+
+        ## lambda_EM
+        v = np.multiply(eta_EM, eta_bar_EM)
+        sv0 = np.sum(v, axis=-1)
+
+        for j in range(r):
+            lambda_EM[0:n,j] = np.divide(v[0:n,j] , sv0)
+
+        ## Lambda
+        gc = np.multiply(eta_bar_EM, f)
+        M = np.multiply(Q, np.multiply(np.transpose(eta0), gc[0,0:r]) )
+        MM = sum(sum(M))
+        Lambda_EM[0:r,0:r,0] = M/MM
+
+        for i in range(1,n):
+            eta_reshape = np.transpose(np.expand_dims(eta_EM[i-1,0:r], 0))
+            gc_reshape = np.expand_dims(gc[i,0:r], 0)
+            M = np.multiply( Q , eta_reshape.dot(gc_reshape) )
+            MM = sum(sum(M))
+            Lambda_EM[0:r,0:r,i] = M/MM
+
+        nu_EM = np.mean(lambda_EM)
+
+        Qnew_EM = Q
+
+        for j in range(r):
+            sv = np.sum(Lambda_EM[j,0:r,0:n], axis=-1)
+            ssv = sum(sv)
+            Qnew_EM[j,0:r] = sv/ssv
+
+        theta_new_EM = theta
+        for i in range(r):
+            ## CA PREND TROP DE TEMPS SANS DOUTE A CAUSE DE LA FONCTION LAMBDA ??
+            if family == 'norm':
+                fun = lambda thetaa : -lambda_EM[0:n, i] @ np.log(self.dens_gauss(y, thetaa, Z)).T
+
+            if optimizer_alg == 'Nelder-Mead':
+                res = minimize(fun, theta[i,0:p], method='Nelder-Mead')  # 'Nelder-Mead'
+            elif optimizer_alg == 'CG':
+                res = minimize(fun, theta[i, 0:p], method='CG')
+            elif optimizer_alg == 'BFGS':
+                res = minimize(fun, theta[i, 0:p], method='BFGS')
+            elif optimizer_alg == 'L-BFGS-B':
+                res = minimize(fun, theta[i, 0:p], method='L-BFGS-B')
+
+            theta_new_EM[i,0:p] = res.x
+
+        return (nu_EM, theta_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL)
+
+
+
+    ##=============================================================================
+    def Sn1d(self, U):
+        """
+        his function computes the Cramer-von Mises statistic Sn for goodness-of-fit of the null hypothesis of a univariate uniform distrubtion over [0,1]
+
+        :param U: vector of pseudos-observations (approximating uniform)
+        :return: Cramer-von Mises statistic
+        """
+        n = len(U)
+        u = np.sort(U)
+        t = (-0.5 + np.arange(1, n+1) ) / n
+
+        stat = (1/(12*n)) + sum( (u-t)**2 )
+
+        return(stat)
+
+
+
+
+    ##=============================================================================
+    def EstHMMGen_AR(self, y, reg, family='norm', p_AR=1, percentiles=None, max_iter=10000, ninit=20, eps=10e-20,
+                     optimizer_alg='Nelder-Mead', init_rand=False, initial_Q=None, initial_theta=None):
+        """
+
+        :param y: time series
+        :param reg: number of regimes
+        :param family: distribution name
+        :param percentiles: used to calibrate the initial parameters
+        :param max_iter: maximum number of iteration
+        :param ninit: minimin number of iteration
+        :param eps: tolerance paramets
+        :param optimizer_alg: optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+        :param init_rand: use to calibrate the initial parameters
+        :return: estimated HMM
+        """
+
+        if isinstance(percentiles, list):
+            reg = len(percentiles) + 1
+            percentiles = [1e-9] + percentiles + [100]
+
+        n = len(y)
+
+        n0 = math.floor(n/reg)
+        ind0 = np.arange(n0)
+
+        if family == 'norm':
+            p = p_AR + 2
+            theta0 = np.zeros((reg, p))
+            alpha0 = np.zeros((reg, p))
+
+            if p > 0:
+                d_Z = 0
+                d_X = p_AR
+                theta_init = np.asarray([np.mean(y), *np.full(d_X, 0.5), np.log(np.std(y))])
+            else:
+                d_Z = 0
+                d_X = 0
+                theta_init = np.asarray([np.mean(y), np.log(np.std(y))])
+
+            if initial_theta is None:
+                for j in range(reg):
+                    if percentiles == None or isinstance(percentiles, list) == False:
+                        ind = j*n0+ind0
+                        if init_rand==False:
+                            x = y[ind]
+                        else:
+                            x = y[np.random.choice(n, int(np.round(0.8*n)), replace=False)]
+
+                        if d_X>0 and d_Z == 0:
+                            X_temp = np.ones(len(x))
+                        else:
+                            X_temp = np.ones(len(x))
+                        fun = lambda thetaa: -np.sum(np.log(self.dens_gauss(x, thetaa, X_temp)))
+                        if optimizer_alg == 'Nelder-Mead':
+                            res = minimize(fun, theta_init, method='Nelder-Mead')  # 'Nelder-Mead'
+                        elif optimizer_alg == 'CG':
+                            res = minimize(fun, theta_init, method='CG')
+                        elif optimizer_alg == 'BFGS':
+                            res = minimize(fun, theta_init, method='BFGS')
+                        elif optimizer_alg == 'L-BFGS-B':
+                            res = minimize(fun, theta_init, method='L-BFGS-B')
+
+                    else:
+                        x = y[(y > np.percentile(y, percentiles[j])) & (y <= np.percentile(y, percentiles[j+1]))]
+                        fun = lambda thetaa: -np.sum(np.log(self.dens_gauss(x, thetaa, X_temp)))
+                        if optimizer_alg == 'Nelder-Mead':
+                            res = minimize(fun, theta_init, method='Nelder-Mead')  # 'Nelder-Mead'
+                        elif optimizer_alg == 'CG':
+                            res = minimize(fun, theta_init, method='CG')
+                        elif optimizer_alg == 'BFGS':
+                            res = minimize(fun, theta_init, method='BFGS')
+                        elif optimizer_alg == 'L-BFGS-B':
+                            res = minimize(fun, theta_init, method='L-BFGS-B')
+
+                    tempFit = res.x
+
+                    alpha0[j, 0:p] = tempFit.copy()
+
+            else:
+                theta0 = initial_theta
+                for j in range(reg):
+                    temp_fit = theta0[j, :].copy()
+                    temp_fit[-1] = np.log(temp_fit[-1])
+                    alpha0[j, :] = temp_fit
+
+            if initial_Q is None:
+                Q0 = np.ones((reg, reg))/reg
+            else:
+                Q0 = initial_Q
+
+        Z = np.ones(n)
+
+        for k in range(ninit):
+            nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
+                self.EMStep_ar(y=y, family=family, theta=alpha0, Q=Q0, p_AR=p_AR, Z=Z, optimizer_alg=optimizer_alg)
+            Q0 = Qnew_EM
+            alpha0 = alpha_new_EM
+
+        for k in range(max_iter):
+            nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
+                self.EMStep_ar(y=y, family=family, theta=alpha0, Q=Q0, p_AR=p_AR, Z=Z, optimizer_alg=optimizer_alg)
+            sum1 = sum(sum(abs(alpha0)))
+            sum2 = sum(sum(abs(alpha_new_EM-alpha0)))
+            if (sum2 < sum1 * reg * eps):
+                break
+            Q0 = Qnew_EM
+            alpha0 = alpha_new_EM
+
+
+        alpha = alpha_new_EM
+        Q = Qnew_EM
+
+        theta = np.zeros((reg, p))
+        for j in range(reg):
+            t_alpha = alpha[j, :].copy()
+            t_alpha[-1] = np.exp(t_alpha[-1])
+            theta[j, :] = t_alpha.copy()
+
+        t_mean_s = np.zeros((reg))
+        for j in range(reg):
+            if p_AR == 1:
+                t_mean_s[j] = theta[j, 0] / (1-theta[j, 1:-1].sum())
+            elif p_AR == 0:
+                t_mean_s[j] = theta[j, 0]
+
+        order = t_mean_s.argsort()
+        theta = theta[order, :]
+        temp_Q = Q[order,:]
+        Q = temp_Q[:,order]
+        eta_EM = eta_EM[:, order]
+        lambda_EM = lambda_EM[:, order]
+        # Lambda_EM = Lambda_EM[:, order]
+
+        numel = theta.shape[0]*theta.shape[1]
+        numParam = (numel+reg**2)
+
+        AIC = (2 * numParam - 2 * LL) / n
+        BIC = (np.log(n) * numParam - 2 * LL) / n
+        CAIC = ((np.log(n)+1) * numParam - 2 * LL) / n
+        AICc = AIC + (2*numParam*(numParam+1))/(n-numParam-1)
+        HQC = (2 * numParam*np.log(np.log(n)) - 2 * LL)/n
+
+        cdf_gof = np.zeros((n-p_AR, reg))
+
+        if family == 'norm':
+            for j in range(reg):
+                cdf_gof[:,j] = self.cum_gauss(y, theta[j,:], Z)
+
+
+        eta00 = np.ones((1,reg))/reg
+        w00 = np.concatenate((eta00, eta_EM), axis=0)
+        W = w00[0:n,0:reg].dot(Q)
+        W = W[:(n-p_AR), :].copy()
+        U = np.sum( np.multiply(W, cdf_gof), -1 )
+        cvm = self.Sn1d(U=U)
+
+        pred_e = np.zeros((n-p_AR, 1))
+        pred_l = np.zeros((n-p_AR, 1))
+        for i in range(len(pred_e)):
+            bb_e = np.argsort(eta_EM[i, 0:reg])
+            pred_e[i] = bb_e[-1]
+            bb_l = np.argsort(lambda_EM[i, 0:reg])
+            pred_l[i] = bb_l[-1]
+        pred_e = pred_e+1
+        pred_l = pred_l+1
+
+        statistics = np.zeros((reg,2))
+        mean_s = np.zeros((reg,1))
+        var_s = np.zeros((reg,1))
+        for j in range(reg):
+            if p_AR == 1:
+                mean_s[j] = theta[j, 0] / (1 - theta[j, 1:-1].sum())
+                var_s[j] = (theta[j, -1]**2) / (1 - theta[j,1]**2)
+            elif p_AR == 0:
+                mean_s[j] = theta[j, 0]
+                var_s[j] = theta[j, -1] ** 2
+
+        statistics[0:reg, 0] = mean_s.squeeze(-1)
+        statistics[0:reg, 1] = var_s.squeeze(-1)**0.5
+
+
+        time_in_each_reg = np.linalg.matrix_power(Q, 1000)[0, :]
+
+        out = {}
+        out['theta'] = theta
+        out['Q'] = Q
+        out['eta_EM'] = eta_EM
+        out['nu_EM'] = nu_EM
+        out['U'] = U
+        out['cvm'] = cvm
+        out['W'] = W
+        out['lambda_EM'] = lambda_EM
+        out['LL'] = LL
+        out['AIC'] = AIC
+        out['BIC'] = BIC
+        out['CAIC'] = CAIC
+        out['AICc'] = AICc
+        out['HQC'] = HQC
+        out['pred_e'] = pred_e
+        out['pred_l'] = pred_l
+        out['statistics'] = statistics
+        out['time_in_each_reg'] = time_in_each_reg
+
+        return out
+
+
+
