@@ -16,7 +16,7 @@ setuptools.setup(
     version="0.1.0",
     author="Mamadou Yamar Thioub and Bouchra R Nasri",
     author_email="mamadou-yamar.thioub@hec.ca",
-    description="Inference, goodness-of-fit tests, and predictions for continuous and discrete univariate Hidden Markov Models (HMM). The goodness-of-fit test is based on a Cramer-von Mises statistic and uses parametric bootstrap to estimate the p-value. The description of the methodology is taken from Nasri et al (2020) <doi: 10.1029/2019WR025122>.",
+    description="Inference, goodness-of-fit tests, and predictions for continuous and discrete univariate Hidden Markov Models (HMM). The goodness-of-fit test is based on a Cramer-von Mises statistic and uses parametric bootstrap to estimate the p-value. The description of the methodology is taken from Nasri, Remillard and Thioub (2020) <doi: 10.1002/cjs.11534>.",
     long_description_content_type="text/markdown",
     url="https://github.com/mamadouyamar/GenHMM1d",
     classifiers=[
