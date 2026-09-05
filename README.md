@@ -5,7 +5,7 @@
 GenHMM1d performs inference, goodness-of-fit testing, and prediction for Hidden
 Markov Models. Estimation is by the EM algorithm; the goodness-of-fit test uses
 a Cramér–von Mises statistic with parametric bootstrap, following
-Nasri et al. (2020) <doi:10.1029/2019WR025122>.
+Nasri et al. (2020) <[doi:10.1029/2019WR025122](https://doi.org/10.1002/cjs.11534)>.
 
 ## Model classes
 
@@ -167,7 +167,7 @@ cdf = hmm.ForecastHMMCdf(y=grid, family='norm', theta=est['theta'],
 - Nasri, B. R., Rémillard, B. N., & Thioub, M. Y. (2024). Regime-switching
   autoregressive models with hidden and observable regimes. *Journal of
   Statistical Computation and Simulation.* (AR models M1–M4)
-- Nasri, B. R., et al. (2020). <doi:10.1029/2019WR025122> (HMM inference and
+- Nasri, B. R., et al. (2020). <[doi:10.1029/2019WR025122](https://doi.org/10.1002/cjs.11534)> (HMM inference and
   Cramér–von Mises goodness-of-fit methodology)
 
 ## Contributing
