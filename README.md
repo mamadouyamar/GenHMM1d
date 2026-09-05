@@ -7,6 +7,13 @@ Markov Models. Estimation is by the EM algorithm; the goodness-of-fit test uses
 a Cramér–von Mises statistic with parametric bootstrap, following
 Nasri et al. (2020) <[doi:10.1029/2019WR025122](https://doi.org/10.1002/cjs.11534)>.
 
+> ### 📓 Start with the worked examples: [`examples.ipynb`](examples.ipynb)
+> Every model class below is demonstrated end-to-end: data is **simulated with
+> known parameters**, then **estimated back**, with the true vs. estimated
+> parameters shown under each cell (seeded, N = 5000, fully reproducible).
+> [**▶ Run it in Colab**](https://colab.research.google.com/github/mamadouyamar/GenHMM1d/blob/master/examples.ipynb) — no installation needed.
+
+
 ## Model classes
 
 | Model class | Simulate | Estimate | Module |
