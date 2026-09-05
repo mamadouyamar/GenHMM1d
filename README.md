@@ -1,223 +1,186 @@
-# General univariate Hidden Markov Models (HMM) library
+# GenHMM1d — general univariate and copula Hidden Markov Models
 
-The library offers functions to perform inference, goodness-of-fit tests, and predictions for continuous and discrete univariate Hidden Markov Models (HMM). The goodness-of-fit test is based on a Cramer von Mises statistic and uses parametric bootstrap to estimate the p-value. The description of the methodology is taken from Nasri et al (2020) <doi: 10.1029/2019WR025122>
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mamadouyamar/GenHMM1d/blob/master/examples.ipynb)
 
+GenHMM1d performs inference, goodness-of-fit testing, and prediction for Hidden
+Markov Models. Estimation is by the EM algorithm; the goodness-of-fit test uses
+a Cramér–von Mises statistic with parametric bootstrap, following
+Nasri et al. (2020) <doi:10.1029/2019WR025122>.
+
+## Model classes
+
+| Model class | Simulate | Estimate | Module |
+|---|---|---|---|
+| iid HMM, 150+ continuous & discrete families (norm, poisson, t, laplace, binom, …) | `HMM.SimHMMGen` | `HMM.EstHMMGen` | `genhmm1d.hmm` |
+| Zero-inflated HMM (a regime with point mass at 0) | `HMM.SimZIHMMGen` | `HMM.EstHMMGen(..., ZI=1)` | `genhmm1d.hmm` |
+| AR(1) Gaussian HMM (model M1) | `ARHMM.SimARXHMMGen` | `ARHMM.EstHMMGen_AR` | `genhmm1d.ar_hmm` |
+| AR(1) log-linear Poisson HMM (M2) | `ARHMM.SimARPoissonGen` | `ARHMM.EstHMMGen_AR(..., family='poisson')` | `genhmm1d.ar_hmm` |
+| AR(1) zero-inflated Gaussian / Poisson HMM (M3, M4) | `ARHMM.SimARZIGaussGen`, `ARHMM.SimARZIPoisGen` | `ARHMM.EstHMMGen_AR(..., ZI=1)` | `genhmm1d.ar_hmm` |
+| Regime-switching bivariate copulas (gaussian, t, clayton, frank, gumbel) | `HMMCopula.SimHMMCopula` | `HMMCopula.EstHMMCop` | `genhmm1d.hmm_copula` |
+
+The autoregressive models M1–M4 follow Nasri, Rémillard & Thioub (2024),
+*Journal of Statistical Computation and Simulation* (Appendix 1 EM algorithm).
+`EstHMMCop` is a Python port of `HMMcopula::EstHMMCop` (R, v1.0.4),
+cross-validated against the R implementation.
+
+**Every model class is demonstrated in [`examples.ipynb`](examples.ipynb)** —
+each example simulates data with known parameters and estimates them back, so
+you can see the recovery quality directly (all examples seeded and
+reproducible). Open it in Colab with the badge above.
 
 ## Installation
 
-To install GenHMM1d simply run 
 ```sh
 pip install git+https://github.com/mamadouyamar/GenHMM1d.git
 ```
 
+Requires Python ≥ 3.6, with numpy, scipy, matplotlib, and joblib.
 
-## Requirements
-GenHMM1d requires the following libraries 
-* scipy 
-* matplotlib.pyplot 
-* numpy
-* math
-* scipy 
-* joblib
-* multiprocessing
-* python >= 3.6
- 
- When unavailable on your system, each of these packages can be installed with the following command
+## Quick start
 
-```sh
-pip install package_name
-```
+### iid HMM: simulate, estimate, compare
 
-## Usage
-
-Import the needed libraries for this example 
-
-```sh
-import scipy as sp
-import matplotlib.pyplot as plt
+```python
 import numpy as np
-from GenHMM1d import hmm 
+from genhmm1d.hmm import HMM
+
+hmm = HMM()
+Q = np.array([[0.94, 0.06],
+              [0.03, 0.97]])                 # transition matrix
+theta = np.array([[0.0,   1.0],
+                  [1.349, 1.0]])             # [mu, sd] per regime
+
+np.random.seed(1000)
+y, _, _ = hmm.SimHMMGen(Q, 'norm', theta, 5000, burn_in=1000)
+out = hmm.EstHMMGen(np.asarray(y).reshape(-1, 1), 2, 'norm')
+print(out["theta"], out["Q"])                # also: AIC, BIC, cvm, eta_EM…
 ```
 
-**To generate observations from a particular model, one need to specify the following quantities**
-
-* Q ==> transition matrix
-* family ==> the name of the univariate [distribution] (https://github.com/mamadouyamar/GenHMM1d/blob/master/distributions), see [documentation] (https://docs.scipy.org/doc/scipy/reference/stats.html) for the parameters.
-* n ==> number of observations to generate
-* ntrial ==> only for the binom and nbinom families
-
-For example one could generate observations from the norm, laplace and binom families with 
-
-```sh
-Q = np.zeros((2,2))
-Q[0,0] = 0.7
-Q[0,1] = 0.3
-Q[1,0] = 0.2
-Q[1,1] = 0.8
-
-family = 'binom'
-ntrial = 5
-theta_sim = np.array([[0.5],[0.75]])
-
-y_binom, __, __ = hmm.HMM.SimHMMGen(Q=Q, family=family, theta=theta_sim, n=n, ntrial=ntrial)
-plt.plot(y_binom)
-plt.show()
-
-family = 'laplace'
-theta_sim = np.array([[-0.5, 0.7],[0.2, 2.4]])
-
-y_laplace, __, __ = hmm.HMM.SimHMMGen(Q=Q, family=family, theta=theta_sim, n=n)
-plt.plot(y_laplace)
-plt.show()
-
-
-family = 'norm'
-theta_sim = np.array([[-0.5, 0.7],[0.2, 2.4]])
-
-y_norm, __, __ = hmm.HMM.SimHMMGen(Q=Q, family=family, theta=theta_sim, n=n)
-plt.plot(y_norm)
-plt.show()
+Output (true → estimated):
 
 ```
-
-
-**Given the previously simulated serie y_norm, one could fit a two regimes HMM with **
-
-```sh
-reg = 2
-family = 'norm'
-out_est_norm1 = hmm.HMM.EstHMMGen(y=y_norm, reg=reg, family=family)
-print('theta = ', out_est_norm1['theta'])
-print('Q = ', out_est_norm1['Q'])
-print('AIC = ', out_est_norm1['AIC'])
-print('BIC = ', out_est_norm1['BIC'])
-print('cvm = ', out_est_norm1['cvm'])
+theta: [[0.0, 1.0], [1.349, 1.0]]  →  [[0.003, 1.000], [1.356, 0.989]]
+Q:     [[0.94, 0.06], [0.03, 0.97]]  →  [[0.942, 0.058], [0.039, 0.961]]
 ```
 
-**One could perform a goodness-of-fit test for the two regimes HMM norm with  **
+The `family` argument accepts 150+ scipy.stats distributions
+([list](https://github.com/mamadouyamar/GenHMM1d/blob/master/distributions));
+discrete families like `'poisson'` and `'binom'` (with `ntrial=`) work the same
+way.
 
-```sh
-reg = 2
-family = 'norm'
-max_iter = 10000  ## maximum number of iterations of the EM algorithm
-eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
-B = 100  ## number of bootstap samples
-percentiles = None
-out_GoF_norm = hmm.HMM.GofHMMGen(y=y_norm, reg=reg, family=family, percentiles=percentiles,
-                             max_iter=max_iter, eps=eps, B=B)
+### Zero-inflated HMM
 
-## The model is valid if the pvalue is greater than 5.
-print('pvalue = ', out_GoF_norm['pvalue']) 
+Regime 0 is a point mass at zero (e.g., dry days in precipitation series, zero
+counts):
+
+```python
+theta = np.array([[0.0], [9.0]])             # [lambda]; row 0 = zero regime
+np.random.seed(1000)
+y, _, _ = hmm.SimZIHMMGen(Q, 'poisson', theta, 5000, burn_in=1000)
+out = hmm.EstHMMGen(np.asarray(y).reshape(-1, 1), 2, 'poisson', ZI=1)
 ```
 
-
-**One could perform a goodness-of-fit test for the two regimes HMM binom with  **
-
-```sh
-reg = 2
-family = 'binom' 
-max_iter = 10000  ## maximum number of iterations of the EM algorithm
-eps = 10e-4   ## precision (stopping criteria), suggestion 0.001
-B = 100  ## number of bootstap samples
-percentiles = None
-ntrial = 5
-out_GoF_binom = hmm.HMM.GofHMMGen(y=y_binom, reg=reg, family=family, percentiles=percentiles,
-                             max_iter=max_iter, eps=eps, B=B, ntrial=ntrial)
-
-## The model is valid if the pvalue is greater than 5.
-print('pvalue = ', out_GoF_binom['pvalue']) 
+```
+lambda: [0, 9.0]  →  [0, 8.931]
+Q:      [[0.94, 0.06], [0.03, 0.97]]  →  [[0.946, 0.054], [0.034, 0.966]]
 ```
 
+### Autoregressive HMM (models M1–M4)
 
-**One could computed the predicted probabilities of the regimes for new observations (ynew) at time n+1, given observation up to time n **
+AR(1) log-linear Poisson HMM (M2), where
+`mu_t = exp(alpha_k + phi_k * log(1 + y_(t-1)))` in regime `k`:
 
-```sh
-## We start by estimating the parameters of the model
+```python
+from genhmm1d.ar_hmm import ARHMM
+arhmm = ARHMM()
 
-reg = 2  
-family = 'norm' 
-out_est_norm1 = hmm.HMM.EstHMMGen(y=y_norm, reg=reg, family=family)
-
-## The selected values for which we are interested in the probability of the regime
-ynew = np.array([0.5, 0.7, 1, -1]) 
-
-## The forecasted probabilities
-forecastedprob = hmm.HMM.ForecastHMMeta(ynew=ynew, family=family, theta=out_est_norm1['theta'], Q=out_est_norm1['Q'], eta=out_est_norm1['eta_EM'][-1,0:reg])
-print(forecastedprob)
+theta = np.array([[0.2, 0.3],
+                  [1.5, 0.4]])               # [alpha, phi] per regime
+np.random.seed(1000)
+y, _, _ = arhmm.SimARPoissonGen(Q, theta, 5000, burn_in=1000)
+iQ = np.array([[0.9, 0.1], [0.1, 0.9]])     # persistent starting Q, recommended
+out = arhmm.EstHMMGen_AR(np.asarray(y).ravel(), 2, family='poisson',
+                         p_AR=1, percentiles=[50], initial_Q=iQ)
 ```
 
-
-
-**One could computed the forecasted probability density function for observation (range_y) for the horizon (k), given observation up to time n **
-
-```sh
-## We start by estimating the parameters of the model
-
-reg = 2  
-family = 'norm' 
-out_est_norm1 = hmm.HMM.EstHMMGen(y=y_norm, reg=reg, family=family)
-
-## The selected values for which we are interested in the pdf 
-range_y = np.arange(-5,5,0.1)
-
-## The horizon of interest
-k = [1,2,5]
-
-## The forecasted probabilities
-forecastedpdf = hmm.HMM.ForecastHMMPdf(y=range_y, family=family, theta=out_est_norm1['theta'], Q=out_est_norm1['Q'], eta=out_est_norm1['eta_EM'][-1,0:reg], k=k)
-plt.plot(range_y, forecastedpdf[0:len(range_y),0])
-plt.plot(range_y, forecastedpdf[0:len(range_y),1])
-plt.plot(range_y, forecastedpdf[0:len(range_y),2])
-plt.title('Forecasted probability density function for horizon 1, 2 and 5')
-plt.legend(['k = 1','k = 2', 'k = 5'])
-plt.show()
+```
+[alpha, phi]: [[0.2, 0.3], [1.5, 0.4]]  →  [[0.187, 0.334], [1.544, 0.382]]
+Q:            [[0.94, 0.06], [0.03, 0.97]]  →  [[0.945, 0.055], [0.034, 0.966]]
 ```
 
+`family='norm'` gives the AR(1)-Gaussian model (M1); adding `ZI=1` gives the
+zero-inflated AR models (M3 with Gaussian regimes, M4 with Poisson regimes).
+See `examples.ipynb` for all four.
 
+### Regime-switching bivariate copulas
 
-**One could computed the forecasted cumulative distribution function for observation (range_y) for the horizon (k), given observation up to time n **
+```python
+from genhmm1d.hmm_copula import HMMCopula
+hcop = HMMCopula()
 
-```sh
-## We start by estimating the parameters of the model
-
-reg = 2  
-family = 'norm' 
-out_est_norm1 = hmm.HMM.EstHMMGen(y_norm, reg, family)
-
-## The selected values for which we are interested in the pdf 
-range_y = np.arange(-5,5,0.1)
-
-## The horizon of interest
-k = [1,2,5]
-
-## The forecasted probabilities
-forecastedcdf = hmm.HMM.ForecastHMMCdf(y=range_y, family=family, theta=out_est_norm1['theta'], Q=out_est_norm1['Q'], eta=out_est_norm1['eta_EM'][-1,0:reg], k=k)
-plt.plot(range_y, forecastedcdf[0:len(range_y),0])
-plt.plot(range_y, forecastedcdf[0:len(range_y),1])
-plt.plot(range_y, forecastedcdf[0:len(range_y),2])
-plt.title('Forecasted cumulative distribution function for horizon 1, 2 and 5')
-plt.legend(['k = 1','k = 2', 'k = 5'])
-plt.show()
+tau = np.array([0.3, 0.7])                   # Kendall tau per regime
+np.random.seed(1000)
+u, _, _, _ = hcop.SimHMMCopula(Q, 'clayton', tau, 5000, burn_in=1000)
+out = hcop.EstHMMCop(u, 2, 'clayton')
 ```
 
+```
+tau: [0.3, 0.7]  →  [0.291, 0.685]
+Q:   [[0.94, 0.06], [0.03, 0.97]]  →  [[0.935, 0.065], [0.038, 0.962]]
+```
 
+Families: `'gaussian'`, `'t'` (with `DoF=`), `'clayton'`, `'frank'`,
+`'gumbel'`.
 
+## Goodness-of-fit test
 
+Cramér–von Mises statistic with parametric bootstrap (B bootstrap samples):
+
+```python
+out = hmm.GofHMMGen(y=y, reg=2, family='norm', max_iter=10000, eps=1e-3, B=100)
+print(out['pvalue'])   # model not rejected at the 5% level if pvalue > 0.05
+```
+
+## Forecasting
+
+Given fitted parameters, forecast regime probabilities and the predictive
+density/CDF at horizons `k`:
+
+```python
+est = hmm.EstHMMGen(np.asarray(y).reshape(-1, 1), 2, 'norm')
+eta = est['eta_EM'][-1, 0:2]
+
+# P(regime | new observation)
+probs = hmm.ForecastHMMeta(ynew=np.array([0.5, 1.0]), family='norm',
+                           theta=est['theta'], Q=est['Q'], eta=eta)
+
+# predictive pdf / cdf over a grid, horizons k = 1, 2, 5
+grid = np.arange(-5, 5, 0.1)
+pdf = hmm.ForecastHMMPdf(y=grid, family='norm', theta=est['theta'],
+                         Q=est['Q'], eta=eta, k=[1, 2, 5])
+cdf = hmm.ForecastHMMCdf(y=grid, family='norm', theta=est['theta'],
+                         Q=est['Q'], eta=eta, k=[1, 2, 5])
+```
+
+## References
+
+- Nasri, B. R., Rémillard, B. N., & Thioub, M. Y. (2024). Regime-switching
+  autoregressive models with hidden and observable regimes. *Journal of
+  Statistical Computation and Simulation.* (AR models M1–M4)
+- Nasri, B. R., et al. (2020). <doi:10.1029/2019WR025122> (HMM inference and
+  Cramér–von Mises goodness-of-fit methodology)
 
 ## Contributing
 
-Please report any bugs to the program to mamadou.yamar.thioub@hec.ca, to do so, please follow these guidelines :
-* Use a clear and descriptive title for the issue to identify the problem.
-* Describe the exact steps necessary to reproduce the problem in as much detail as possible. Please do not just summarize what you did.
-* Provide the specific environment setup. Include the pip freeze output, specific environment variables, Python version, and other relevant information.
-* Provide specific examples to demonstrate the steps. Include links to files or GitHub projects, or copy/paste snippets which you use in those examples.
-
-
+Please report bugs to mamadou.yamar.thioub@hec.ca with:
+* a clear and descriptive title;
+* the exact steps necessary to reproduce the problem;
+* your environment (`pip freeze` output, Python version);
+* a minimal code example.
 
 ## Contact
-Mamadou Yamar Thioub - [@MamadouYamar](https://twitter.com/MamadouYamar) - mamadou-yamar.thioub@hec.ca
 
-Project Link: [https://github.com/mamadouyamar/GenHMM1d](https://github.com/mamadouyamar/GenHMM1d)
+Mamadou Yamar Thioub — [@MamadouYamar](https://twitter.com/MamadouYamar) —
+mamadou-yamar.thioub@hec.ca
 
-
-
+Project link: <https://github.com/mamadouyamar/GenHMM1d>
