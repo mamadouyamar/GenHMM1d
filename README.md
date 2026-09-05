@@ -11,7 +11,7 @@ Nasri et al. (2020) <[doi:10.1029/2019WR025122](https://doi.org/10.1002/cjs.1153
 
 | Model class | Simulate | Estimate | Module |
 |---|---|---|---|
-| iid HMM, 150+ continuous & discrete families (norm, poisson, t, laplace, binom, …) | `HMM.SimHMMGen` | `HMM.EstHMMGen` | `genhmm1d.hmm` |
+| iid HMM, 50+ continuous & discrete families (norm, poisson, t, laplace, binom, …) | `HMM.SimHMMGen` | `HMM.EstHMMGen` | `genhmm1d.hmm` |
 | Zero-inflated HMM (a regime with point mass at 0) | `HMM.SimZIHMMGen` | `HMM.EstHMMGen(..., ZI=1)` | `genhmm1d.hmm` |
 | AR(1) Gaussian HMM (model M1) | `ARHMM.SimARXHMMGen` | `ARHMM.EstHMMGen_AR` | `genhmm1d.ar_hmm` |
 | AR(1) log-linear Poisson HMM (M2) | `ARHMM.SimARPoissonGen` | `ARHMM.EstHMMGen_AR(..., family='poisson')` | `genhmm1d.ar_hmm` |
