@@ -2089,7 +2089,7 @@ class HMM:
                 x0[0:n,k] = np.random.choice(r, n, p=Q[k,])
             for i in range(n):
                 x[i] = x0[i][int(ind)]
-                ind = int(x[i])
+                ind = int(x[i][0])
         else:
             x[0:n] = 0
 
@@ -2104,18 +2104,20 @@ class HMM:
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
-    def SimHMMGen(self, Q, family, theta, n, ntrial=0):
+    def SimHMMGen(self, Q, family, theta, n, ntrial=0, burn_in=0):
         """
         This function simulates observation from a univariate hidden Markov model
 
         :param Q: transtion matrix
         :param family: distribution name
         :param theta: parameters
-        :param n: sample size
+        :param n: sample size (after burn-in removal)
         :param ntrial: parameter of some discrete distribution
+        :param burn_in: number of initial observations discarded
         :return: Simulated Hidden Markov Model
         """
         r = Q.shape[0]
+        n = n + burn_in
         MC = self.SimMarkovChain(Q=Q,n=n,eta0=1)
 
         sim = np.zeros((n,r))
@@ -2491,11 +2493,120 @@ class HMM:
 
         #===================================
         for i in range(n):
-            simdata[i] = sim[i,int(MC[i])]
+            simdata[i] = sim[i,int(MC[i][0])]
 
 
-        #===================================
+        #=================================== discard burn-in
+        simdata = simdata[burn_in:]
+        sim     = sim[burn_in:, :]
+        MC      = MC[burn_in:]
+
         return(simdata, sim, MC)
+
+
+
+
+    ##=============================================================================
+    ##=============================================================================
+    ##=============================================================================
+    ##=============================================================================
+    def SimZIHMMGen(self, Q, family, theta, n, ntrial=0, burn_in=0):
+        """
+        This function simulates observation from a zero-inflated univariate hidden
+        Markov model, using the convention of Nasri, Remillard et al. (the GenHMM1d
+        R package, ZI=1): REGIME 0 is a degenerate point mass at 0 (density 1(y=0)),
+        while regimes 1,...,r-1 emit `family` with parameters theta[1:,:]. There is
+        NO per-regime zero-inflation probability. theta is an (r x p) array whose
+        first row (the zero regime) is unused. Total states = r; non-zero regimes = r-1.
+
+        :param Q: transtion matrix (r x r)
+        :param family: distribution name of the non-zero regimes (e.g. 'norm', 'poisson')
+        :param theta: parameters (r x p); row 0 = zero regime (ignored), rows 1.. = family
+        :param n: sample size (after burn-in removal)
+        :param ntrial: parameter of some discrete distribution
+        :param burn_in: number of initial observations discarded
+        :return: Simulated zero-inflated Hidden Markov Model (simdata, sim, MC)
+        """
+        theta = np.asarray(theta, dtype=float).copy()
+        # regime 0's row is unused; give it a valid dummy (copy regime 1) so the
+        # generic SimHMMGen can draw its column, which we overwrite with 0 below.
+        theta[0] = theta[1]
+        simdata, sim, MC = self.SimHMMGen(Q=Q, family=family, theta=theta,
+                                          n=n + burn_in, ntrial=ntrial)
+        N = sim.shape[0]
+
+        sim[:, 0] = 0.0                 # regime 0 emits exactly 0 (the zero regime)
+        for i in range(N):
+            simdata[i] = sim[i, int(MC[i][0])]
+
+        #=================================== discard burn-in
+        simdata = simdata[burn_in:]
+        sim     = sim[burn_in:, :]
+        MC      = MC[burn_in:]
+
+        return(simdata, sim, MC)
+
+
+
+
+    ##=============================================================================
+    ##=============================================================================
+    ##=============================================================================
+    ##=============================================================================
+    def SimMSGARCHGen(self, Q, theta, n, family='norm', dof=8.0, burn_in=1000):
+        """
+        This function simulates observation from a Markov-switching GARCH(1,1)
+        model, Haas et al. (2004), zero-mean:
+            r_t     = sqrt(h_{S_t, t}) * eps_t
+            h_{k,t} = omega_k + alpha_k * r_{t-1}^2 + beta_k * h_{k,t-1}   for every regime k
+        The r variance recursions run in parallel at every t; the chain only
+        selects which one emits r_t. eps ~ N(0,1) ('norm') or a Student-t
+        standardized to unit variance ('std', dof > 2).
+
+        :param Q: transtion matrix
+        :param theta: parameters, one row [omega, alpha, beta] per regime
+        :param n: sample size (after burn-in removal)
+        :param family: 'norm' or 'std'
+        :param dof: degrees of freedom, only used when family == 'std'
+        :param burn_in: number of initial observations discarded
+        :return: Simulated MS-GARCH model; sim[t,k] is what regime k emits at t
+        """
+        reg = Q.shape[0]
+        theta = np.asarray(theta, dtype=float)
+        omega = theta[:,0]
+        alpha = theta[:,1]
+        beta  = theta[:,2]
+
+        n = n + burn_in
+
+        if reg >= 2:
+            MC = self.SimMarkovChain(Q=Q, n=n, eta0=1)
+        else:
+            MC = np.zeros((n,1), dtype=int)
+
+        if family == 'norm':  ## [] ;     support [R]
+            eps = np.random.randn(n)
+        elif family == 'std':  ## [R+ , dof>2] ;     support [R]
+            eps = stats.t.rvs(dof, size=n) * np.sqrt((dof-2)/dof)
+
+        y   = np.zeros(n)
+        sim = np.zeros((n,reg))
+
+        h = omega / (1 - alpha - beta)          # unconditional variance per regime
+        sim[0,:] = np.sqrt(h) * eps[0]
+        y[0] = sim[0,int(MC[0][0])]
+
+        for i in range(1, n):
+            h = omega + alpha * y[i-1]**2 + beta * h
+            sim[i,:] = np.sqrt(h) * eps[i]
+            y[i] = sim[i,int(MC[i][0])]
+
+        #=================================== discard burn-in
+        y   = y[burn_in:]
+        sim = sim[burn_in:, :]
+        MC  = MC[burn_in:]
+
+        return(y, sim, MC)
 
 
 
@@ -3385,7 +3496,7 @@ class HMM:
 
 
     ##=============================================================================
-    def EMStep(self, y, family, theta, Q, ntrial, optimizer_alg):
+    def EMStep(self, y, family, theta, Q, ntrial, optimizer_alg, ZI=0):
         """
         This function perform EM optimization
 
@@ -3395,6 +3506,7 @@ class HMM:
         :param Q: transition matrix
         :param ntrial: parameter for some discrete distribution
         :param optimizer_alg: optmization algorithm. default ('Nelder-Mead')
+        :param ZI: 1 if zero-inflated (regime 0 is a point mass at 0), 0 otherwise
         :return:
         """
 
@@ -3410,6 +3522,22 @@ class HMM:
 
         for j in range(r):
             f[0:n,j] = self.PDFunc(family=family, y=y, param=theta[j, 0:p], ntrial=ntrial).reshape(n)
+
+        # zero-inflation (ZI=1): regime 0 is the degenerate point mass at 0,
+        # density 1(y=0). Family-dependent handling of the OTHER regimes at
+        # exact zeros (paper section 3.1, M3 vs M4):
+        #   continuous families: a continuous regime cannot emit an exact 0,
+        #     so its density is set to 0 there -- zero regime OBSERVABLE (M3);
+        #   'poisson': a Poisson regime emits real zeros, so its pmf at y=0 is
+        #     KEPT -- zero regime HIDDEN (M4). NB this deviates from the R
+        #     0.2.6 EMStep, which zeroes every non-zero regime at y==0 for ALL
+        #     families (exact for continuous, misspecified for Poisson).
+        if ZI == 1:
+            zero_mask = (np.asarray(y).reshape(n) == 0)
+            f[:, 0] = zero_mask.astype(float)
+            if family != 'poisson':
+                for j in range(1, r):
+                    f[zero_mask, j] = 0.0
         #np.where(f[0:n,1] == 0)
         #np.where(f[0:n,0] == )
         #y[621]
@@ -3466,12 +3594,24 @@ class HMM:
             ssv = sum(sv)
             Qnew_EM[j,0:r] = sv/ssv
 
-        theta_new_EM = theta
-        for i in range(r):
-            ## CA PREND TROP DE TEMPS SANS DOUTE A CAUSE DE LA FONCTION LAMBDA ??
+        theta_new_EM = theta.copy()
+        # For ZI, regime 0 is the fixed zero point mass (no emission params to
+        # estimate): skip it. Continuous families fit regimes 1..r-1 on the
+        # NON-ZERO data only (their lambda weights are exactly 0 at zeros);
+        # 'poisson' fits on ALL data (zeros included, weighted by lambda --
+        # the hidden zero regime shares the zeros with the Poisson regimes).
+        yv = np.asarray(y, dtype=float).reshape(n, 1)
+        nz = (yv.reshape(n) != 0)
+        for i in range(ZI, r):
+            if ZI == 1 and family != 'poisson':
+                yi = yv[nz].reshape(-1, 1)
+                wi = lambda_EM[nz, i]
+            else:
+                yi = yv
+                wi = lambda_EM[0:n, i]
 
-            fun = lambda thetaa : -sum( np.multiply(lambda_EM[0:n,i],
-                                                        np.squeeze(np.log(self.PDFunc(family=family, y=y, param=thetaa, ntrial=ntrial)), -1) ) )
+            fun = lambda thetaa, yi=yi, wi=wi: -sum( np.multiply(wi,
+                                                        np.squeeze(np.log(self.PDFunc(family=family, y=yi, param=thetaa, ntrial=ntrial)), -1) ) )
             if optimizer_alg == 'Nelder-Mead':
                 res = minimize(fun, theta[i,0:p], method='Nelder-Mead')  # 'Nelder-Mead'
             elif optimizer_alg == 'CG':
@@ -3896,7 +4036,7 @@ class HMM:
     ##=============================================================================
     def EstHMMGen(self, y, reg, family, percentiles=None, max_iter=10000, ninit=50, eps=10e-20, ntrial=0,
                   optimizer_alg='Nelder-Mead', init_rand=False,
-                  initial_Q=None, initial_theta=None):
+                  initial_Q=None, initial_theta=None, ZI=0):
         """
 
         :param y: time series
@@ -3923,30 +4063,35 @@ class HMM:
 
         n = len(y)
 
-        n0 = math.floor(n/reg)
-        ind0 = np.arange(n0)
-
         discreteFam = ['poisson', 'binom', 'geom', 'nbinom']
 
         p, typeofparams = self.infodistr(family=family)
         theta0 = np.zeros((reg, p))
         alpha0 = np.zeros((reg, p))
 
+        # For ZI, regime 0 is the zero point mass (its row stays 0); starting
+        # values for regimes 1..reg-1 are built from the NON-ZERO observations.
+        y_fit = y[np.asarray(y).reshape(n) != 0] if ZI == 1 else y
+        nfit = len(y_fit)
+        n0 = math.floor(nfit / max(reg - ZI, 1))
+        ind0 = np.arange(n0)
+
         if initial_theta is None:
-            for j in range(reg):
+            for j in range(ZI, reg):
+                jj = j - ZI                      # 0-based index among the non-zero regimes
                 if percentiles == None or isinstance(percentiles, list) == False:
-                    ind = j*n0+ind0
+                    ind = jj*n0+ind0
                     if init_rand==False:
-                        x = y[ind]
+                        x = y_fit[ind]
                     else:
-                        x = y[np.random.choice(n, int(np.round(0.8*n)), replace=False)]
+                        x = y_fit[np.random.choice(nfit, int(np.round(0.8*nfit)), replace=False)]
                     if family not in discreteFam:
-                        x = np.append(x,min(y))
-                        x = np.append(x,max(y))
+                        x = np.append(x,min(y_fit))
+                        x = np.append(x,max(y_fit))
                     tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
 
                 else:
-                    x = y[(y > np.percentile(y, percentiles[j])) & (y <= np.percentile(y, percentiles[j+1]))]
+                    x = y_fit[(y_fit > np.percentile(y_fit, percentiles[jj])) & (y_fit <= np.percentile(y_fit, percentiles[jj+1]))]
                     tempFit = self.fitdistr(family=family, y=x, ntrial=ntrial)
 
                 theta0[j, 0:p] = tempFit
@@ -3954,7 +4099,7 @@ class HMM:
 
         else:
             theta0 = initial_theta
-            for j in range(reg):
+            for j in range(ZI, reg):
                 alpha0[j, 0:p] = self.theta2alpha(param=theta0[j, :], typeofparams=typeofparams)
 
         if initial_Q is None:
@@ -3965,7 +4110,7 @@ class HMM:
         for k in range(ninit):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
                 self.EMStep(y=y, family=family, theta=alpha0, Q=Q0, ntrial=ntrial,
-                            optimizer_alg=optimizer_alg)
+                            optimizer_alg=optimizer_alg, ZI=ZI)
             Q0 = Qnew_EM
             alpha0 = alpha_new_EM
             #print(alpha0)
@@ -3975,7 +4120,7 @@ class HMM:
         for k in range(max_iter):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL = self.EMStep(
                 y=y, family=family, theta=alpha0, Q=Q0, ntrial=ntrial,
-                optimizer_alg=optimizer_alg)
+                optimizer_alg=optimizer_alg, ZI=ZI)
 
             sum1 = sum(sum(abs(alpha0)))
             sum2 = sum(sum(abs(alpha_new_EM-alpha0)))
@@ -3994,10 +4139,16 @@ class HMM:
         for j in range(reg):
             theta[j,0:p] = self.alpha2theta(alpha[j,0:p],typeofparams)
 
+        # order regimes by mean. For ZI, regime 0 is the zero regime: keep it
+        # first and order only the non-zero regimes (as the R package does).
         t_mean_s = np.zeros((reg))
-        for j in range(reg):
+        for j in range(ZI, reg):
             t_mean_s[j], _, _, _ = self.statsdistr(family=family, param=theta[j, :])
-        order = t_mean_s.argsort()
+        if ZI == 1:
+            theta[0, 0:p] = 0.0                        # zero regime carries no params
+            order = np.concatenate(([0], ZI + np.argsort(t_mean_s[ZI:])))
+        else:
+            order = t_mean_s.argsort()
         theta = theta[order, :]
         temp_Q = Q[order,:]
         Q = temp_Q[:,order]
@@ -4005,7 +4156,8 @@ class HMM:
         lambda_EM = lambda_EM[:, order]
         # Lambda_EM = Lambda_EM[:, order]
 
-        numel = theta.shape[0]*theta.shape[1]
+        # the zero regime contributes no emission parameters
+        numel = (theta.shape[0] - ZI) * theta.shape[1]
         numParam = (numel+reg**2)
 
         AIC = (2 * numParam - 2 * LL) / n
