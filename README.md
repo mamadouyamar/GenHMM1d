@@ -12,6 +12,16 @@ Nasri et al. (2020) <[doi:10.1029/2019WR025122](https://doi.org/10.1002/cjs.1153
 > known parameters**, then **estimated back**, with the true vs. estimated
 > parameters shown under each cell (seeded, N = 5000, fully reproducible).
 
+> ### 🔁 R/Python parity check: [`parity.ipynb`](parity.ipynb) and [**▶ Run it in Colab**](https://colab.research.google.com/github/mamadouyamar/GenHMM1d/blob/master/parity.ipynb)
+> Observations are simulated with the **R GenHMM1d**
+> ([CRAN](https://cran.r-project.org/package=GenHMM1d)) and the **same series**
+> is estimated with both the R and the Python package, with matched settings:
+> the estimates agree to numerical tolerance on the shared model classes
+> (Gaussian, Poisson, zero-inflated). This Python package additionally provides
+> the autoregressive models M1–M4.
+
+
+
 
 ## Model classes
 
