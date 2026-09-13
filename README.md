@@ -132,7 +132,8 @@ chain switches regime almost every step. Starting from a persistent `initial_Q`
 `family='norm'` gives the AR(1)-Gaussian model (M1); adding `ZI=1` gives the
 zero-inflated AR models (M3 with Gaussian regimes, M4 with Poisson regimes).
 The linear (identity-link) Poisson case, `mu_t = alpha + phi * y_(t-1)`, is
-available via `link='id'`. See `examples.ipynb` for all of them.
+available via `link='id'`, alone or combined with `ZI=1` (simulation and
+estimation). See `examples.ipynb` for all of them.
 
 ### Regime-switching bivariate copulas
 
