@@ -189,7 +189,7 @@ class ARHMM:
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
-    def SimARZIPoisGen(self, Q, theta, n, burn_in=0):
+    def SimARZIPoisGen(self, Q, theta, n, burn_in=0, link='log'):
         """
         This function simulates observation from a zero-inflated log-linear
         Poisson autoregressive hidden Markov model (paper M4, zero-regime
@@ -214,7 +214,10 @@ class ARHMM:
         for i in range(1, n):
             sim[i, 0] = 0.0                          # zero regime
             for j in range(1, reg):
-                mu = np.exp(theta[j, 0] + theta[j, 1] * np.log(1.0 + y[i - 1]))
+                if link == 'id':
+                    mu = max(theta[j, 0] + theta[j, 1] * y[i - 1], 1e-12)
+                else:
+                    mu = np.exp(theta[j, 0] + theta[j, 1] * np.log(1.0 + y[i - 1]))
                 sim[i, j] = np.random.poisson(mu)
             y[i] = sim[i, int(MC[i][0])]
 
