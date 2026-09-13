@@ -16,11 +16,10 @@ Nasri et al. (2020) <[doi:10.1029/2019WR025122](https://doi.org/10.1002/cjs.1153
 > Observations are simulated with the **R GenHMM1d**
 > ([CRAN](https://cran.r-project.org/package=GenHMM1d)) and the **same series**
 > is estimated with both the R and the Python package, with matched settings:
-> the estimates agree to numerical tolerance on the shared model classes
-> (Gaussian, Poisson, zero-inflated). This Python package additionally provides
-> the autoregressive models M1–M4.
-
-
+> the estimates agree to numerical tolerance on the model classes common to
+> the two packages — Gaussian, Poisson, and zero-inflated HMMs. The
+> autoregressive models M1–M4 and the regime-switching copulas exist only in
+> the Python package and are therefore outside the parity scope.
 
 
 ## Model classes
@@ -124,9 +123,16 @@ out = arhmm.EstHMMGen_AR(np.asarray(y).ravel(), 2, family='poisson',
 Q:            [[0.94, 0.06], [0.03, 0.97]]  →  [[0.945, 0.055], [0.034, 0.966]]
 ```
 
+**Why `initial_Q` matters:** for autoregressive HMMs with persistent regimes,
+an EM started from a uniform transition matrix converges to a local optimum in
+which the AR coefficient `phi` absorbs the regime persistence and the estimated
+chain switches regime almost every step. Starting from a persistent `initial_Q`
+(e.g., 0.9 diagonals) avoids this trap — always pass one for AR models.
+
 `family='norm'` gives the AR(1)-Gaussian model (M1); adding `ZI=1` gives the
 zero-inflated AR models (M3 with Gaussian regimes, M4 with Poisson regimes).
-See `examples.ipynb` for all four.
+The linear (identity-link) Poisson case, `mu_t = alpha + phi * y_(t-1)`, is
+available via `link='id'`. See `examples.ipynb` for all of them.
 
 ### Regime-switching bivariate copulas
 
