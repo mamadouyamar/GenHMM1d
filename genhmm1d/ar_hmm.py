@@ -103,16 +103,19 @@ class ARHMM:
     ##=============================================================================
     ##=============================================================================
     ##=============================================================================
-    def SimARPoissonGen(self, Q, theta, n, burn_in=0):
+    def SimARPoissonGen(self, Q, theta, n, burn_in=0, link='log'):
         """
-        This function simulates observation from a log-linear Poisson
-        autoregressive hidden Markov model (paper M2):
-            mu_t = exp(alpha_k + phi_k * log(1 + Y_{t-1})),   Y_t ~ Poisson(mu_t)
+        This function simulates observation from a Poisson autoregressive
+        hidden Markov model (paper M2):
+            link='log' (log-linear): mu_t = exp(alpha_k + phi_k*log(1+Y_{t-1}))
+            link='id'  (linear):     mu_t = alpha_k + phi_k*Y_{t-1}
+                                     (alpha_k > 0, 0 <= phi_k < 1)
 
         :param Q: transtion matrix
         :param theta: parameters, one row [alpha, phi] per regime
         :param n: sample size (after burn-in removal)
         :param burn_in: number of initial observations discarded
+        :param link: 'log' (default) or 'id'
         :return: Simulated Hidden Markov Model (y, sim, MC)
         """
         n = n + burn_in
@@ -125,7 +128,10 @@ class ARHMM:
 
         for i in range(1, n):
             for j in range(reg):
-                mu = np.exp(theta[j, 0] + theta[j, 1] * np.log(1.0 + y[i - 1]))
+                if link == 'id':
+                    mu = max(theta[j, 0] + theta[j, 1] * y[i - 1], 1e-12)
+                else:
+                    mu = np.exp(theta[j, 0] + theta[j, 1] * np.log(1.0 + y[i - 1]))
                 sim[i, j] = np.random.poisson(mu)
             y[i] = sim[i, int(MC[i][0])]
 
@@ -286,21 +292,29 @@ class ARHMM:
 
 
 
-    def dens_pois(self, y, theta, Z_augmented):
+    def dens_pois(self, y, theta, Z_augmented, link='log'):
         """
-        Conditional density of the log-linear Poisson AR(1) regime (paper M2):
-            mu_t = exp(alpha + phi * log(1 + y_{t-1})),   Y_t | y_{t-1} ~ Poisson(mu_t)
+        Conditional density of the Poisson AR(1) regime (paper M2):
+            link='log' (log-linear): mu_t = exp(alpha + phi * log(1 + y_{t-1}))
+            link='id'  (linear):     mu_t = alpha + phi * y_{t-1},  mu_t > 0
         theta = [alpha, phi]. Returns the pmf for t = 2,...,n (length n-1),
         floored at 1e-300 so the EM recursions and log-objectives stay finite.
+        For link='id', parameter values making any mu_t <= 0 get density
+        1e-300 everywhere (a barrier enforcing alpha > 0, phi >= 0).
         """
-        eta = theta[0] + theta[1] * np.log1p(y[:-1])
-        mu = np.exp(np.clip(eta, -30.0, 30.0))
+        if link == 'id':
+            mu = theta[0] + theta[1] * y[:-1]
+            if np.min(mu) <= 1e-12:
+                return np.full(len(y) - 1, 1e-300)
+        else:
+            eta = theta[0] + theta[1] * np.log1p(y[:-1])
+            mu = np.exp(np.clip(eta, -30.0, 30.0))
         f = stats.poisson.pmf(np.round(y[1:]), mu)
         return np.maximum(f, 1e-300)
 
 
     ##=============================================================================
-    def EMStep_ar(self, y, family, theta, Q, p_AR, Z, optimizer_alg, ZI=0):
+    def EMStep_ar(self, y, family, theta, Q, p_AR, Z, optimizer_alg, ZI=0, link='log'):
         """
         This function perform EM optimization
 
@@ -329,7 +343,7 @@ class ARHMM:
 
         elif family == 'poisson':
             for j in range(ZI, r):
-                f[0:n, j] = self.dens_pois(y=y, theta=theta[j, :], Z_augmented=Z)
+                f[0:n, j] = self.dens_pois(y=y, theta=theta[j, :], Z_augmented=Z, link=link)
 
         if ZI == 1:
             ## regime 0 = point mass at 0 (paper M3/M4): g_0(y) = 1(y = 0)
@@ -399,7 +413,7 @@ class ARHMM:
             if family == 'norm':
                 fun = lambda thetaa : -lambda_EM[0:n, i] @ np.log(np.maximum(self.dens_gauss(y, thetaa, Z), 1e-300)).T
             elif family == 'poisson':
-                fun = lambda thetaa : -lambda_EM[0:n, i] @ np.log(self.dens_pois(y, thetaa, Z)).T
+                fun = lambda thetaa : -lambda_EM[0:n, i] @ np.log(self.dens_pois(y, thetaa, Z, link=link)).T
 
             if optimizer_alg == 'Nelder-Mead':
                 res = minimize(fun, theta[i,0:p], method='Nelder-Mead')  # 'Nelder-Mead'
@@ -437,7 +451,8 @@ class ARHMM:
 
     ##=============================================================================
     def EstHMMGen_AR(self, y, reg, family='norm', p_AR=1, percentiles=None, max_iter=10000, ninit=20, eps=10e-20,
-                     optimizer_alg='Nelder-Mead', init_rand=False, initial_Q=None, initial_theta=None, ZI=0):
+                     optimizer_alg='Nelder-Mead', init_rand=False, initial_Q=None, initial_theta=None, ZI=0,
+                     link='log'):
         """
         EM estimation of autoregressive HMMs, following Nasri, Remillard &
         Thioub (2024, JSCS) Appendix 1: E-step recursions (A1)-(A5), M-step
@@ -480,10 +495,14 @@ class ARHMM:
                                      np.log(np.std(y_init))])
             dens = self.dens_gauss
         elif family == 'poisson':
-            p = p_AR + 1                       # [alpha, phi] (log-linear, M2)
-            theta_init = np.asarray([np.log(np.mean(y_init) + 1e-9),
-                                     *np.full(p_AR, 0.1)])
-            dens = self.dens_pois
+            p = p_AR + 1                       # [alpha, phi] (M2; link log or id)
+            if link == 'id':
+                theta_init = np.asarray([max(np.mean(y_init), 1e-3),
+                                         *np.full(p_AR, 0.1)])
+            else:
+                theta_init = np.asarray([np.log(np.mean(y_init) + 1e-9),
+                                         *np.full(p_AR, 0.1)])
+            dens = lambda x, th, Zt: self.dens_pois(x, th, Zt, link=link)
 
         theta0 = np.zeros((reg, p))
         alpha0 = np.zeros((reg, p))            # ZI: row 0 stays 0 (point mass)
@@ -523,13 +542,13 @@ class ARHMM:
 
         for k in range(ninit):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
-                self.EMStep_ar(y=y, family=family, theta=alpha0, Q=Q0, p_AR=p_AR, Z=Z, optimizer_alg=optimizer_alg, ZI=ZI)
+                self.EMStep_ar(y=y, family=family, theta=alpha0, Q=Q0, p_AR=p_AR, Z=Z, optimizer_alg=optimizer_alg, ZI=ZI, link=link)
             Q0 = Qnew_EM
             alpha0 = alpha_new_EM
 
         for k in range(max_iter):
             nu_EM, alpha_new_EM, Qnew_EM, eta_EM, eta_bar_EM, lambda_EM, Lambda_EM, LL =\
-                self.EMStep_ar(y=y, family=family, theta=alpha0, Q=Q0, p_AR=p_AR, Z=Z, optimizer_alg=optimizer_alg, ZI=ZI)
+                self.EMStep_ar(y=y, family=family, theta=alpha0, Q=Q0, p_AR=p_AR, Z=Z, optimizer_alg=optimizer_alg, ZI=ZI, link=link)
             sum1 = sum(sum(abs(alpha0)))
             sum2 = sum(sum(abs(alpha_new_EM-alpha0)))
             if (sum2 < sum1 * reg * eps):
@@ -556,9 +575,13 @@ class ARHMM:
                 elif p_AR == 0:
                     t_mean_s[j] = theta[j, 0]
             elif family == 'poisson':
-                ## predicted regime mean at the average lag level (the
-                ## log-linear AR-Poisson has no closed-form stationary mean)
-                t_mean_s[j] = np.exp(theta[j, 0] + theta[j, 1] * np.mean(np.log1p(y)))
+                if link == 'id' and p_AR == 1:
+                    ## linear AR-Poisson: stationary mean alpha/(1 - phi)
+                    t_mean_s[j] = theta[j, 0] / max(1.0 - theta[j, 1], 1e-9)
+                else:
+                    ## predicted regime mean at the average lag level (the
+                    ## log-linear AR-Poisson has no closed-form stationary mean)
+                    t_mean_s[j] = np.exp(theta[j, 0] + theta[j, 1] * np.mean(np.log1p(y)))
 
         ## label alignment: the zero regime (if any) is pinned first, the
         ## remaining regimes are sorted by their (stationary/predicted) mean
