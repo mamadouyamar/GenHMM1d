@@ -67,7 +67,7 @@ theta = np.array([[0.0,   1.0],
 
 np.random.seed(1000)
 y, _, _ = hmm.SimHMMGen(Q, 'norm', theta, 5000, burn_in=1000)
-out = hmm.EstHMMGen(np.asarray(y).reshape(-1, 1), 2, 'norm')
+out = hmm.EstHMMGen(y, 2, 'norm')
 print(out["theta"], out["Q"])                # also: AIC, BIC, cvm, eta_EM…
 ```
 
@@ -78,6 +78,8 @@ theta: [[0.0, 1.0], [1.349, 1.0]]  →  [[0.003, 1.000], [1.356, 0.989]]
 Q:     [[0.94, 0.06], [0.03, 0.97]]  →  [[0.942, 0.058], [0.039, 0.961]]
 ```
 
+`y` can be a list, a 1-d array, a column vector, a pandas Series, or a
+single-column DataFrame — no reshaping needed.
 The `family` argument accepts 150+ scipy.stats distributions
 ([list](https://github.com/mamadouyamar/GenHMM1d/blob/master/distributions));
 discrete families like `'poisson'` and `'binom'` (with `ntrial=`) work the same
@@ -92,7 +94,7 @@ counts):
 theta = np.array([[0.0], [9.0]])             # [lambda]; row 0 = zero regime
 np.random.seed(1000)
 y, _, _ = hmm.SimZIHMMGen(Q, 'poisson', theta, 5000, burn_in=1000)
-out = hmm.EstHMMGen(np.asarray(y).reshape(-1, 1), 2, 'poisson', ZI=1)
+out = hmm.EstHMMGen(y, 2, 'poisson', ZI=1)
 ```
 
 ```
@@ -114,7 +116,7 @@ theta = np.array([[0.2, 0.3],
 np.random.seed(1000)
 y, _, _ = arhmm.SimARPoissonGen(Q, theta, 5000, burn_in=1000)
 iQ = np.array([[0.9, 0.1], [0.1, 0.9]])     # persistent starting Q, recommended
-out = arhmm.EstHMMGen_AR(np.asarray(y).ravel(), 2, family='poisson',
+out = arhmm.EstHMMGen_AR(y, 2, family='poisson',
                          p_AR=1, percentiles=[50], initial_Q=iQ)
 ```
 
@@ -170,7 +172,7 @@ Given fitted parameters, forecast regime probabilities and the predictive
 density/CDF at horizons `k`:
 
 ```python
-est = hmm.EstHMMGen(np.asarray(y).reshape(-1, 1), 2, 'norm')
+est = hmm.EstHMMGen(y, 2, 'norm')
 eta = est['eta_EM'][-1, 0:2]
 
 # P(regime | new observation)
