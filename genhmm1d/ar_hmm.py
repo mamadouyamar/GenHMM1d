@@ -479,6 +479,9 @@ class ARHMM:
         :return: estimated HMM
         """
 
+        from genhmm1d.hmm import _as_column
+        y = _as_column(y).ravel()          # accepts list/array/Series/DataFrame
+
         if isinstance(percentiles, list):
             reg = len(percentiles) + 1 + ZI
             percentiles = [1e-9] + percentiles + [100]

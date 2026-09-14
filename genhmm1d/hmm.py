@@ -14,6 +14,30 @@ import pandas as pd
 from joblib import Parallel, delayed
 import multiprocessing
 
+
+def _as_column(y):
+    """Coerce y to an (n, 1) float numpy column vector.
+
+    Accepts a list, a 1-d numpy array, an (n, 1) numpy array, a pandas
+    Series, or a single-column pandas DataFrame. Raises ValueError for
+    anything wider than one column.
+    """
+    if isinstance(y, pd.DataFrame):
+        if y.shape[1] != 1:
+            raise ValueError(
+                f"y must have exactly one column, got {y.shape[1]}")
+        y = y.iloc[:, 0]
+    if isinstance(y, pd.Series):
+        y = y.to_numpy()
+    y = np.asarray(y, dtype=float)
+    if y.ndim == 1:
+        return y.reshape(-1, 1)
+    if y.ndim == 2 and y.shape[1] == 1:
+        return y
+    raise ValueError(
+        f"y must be one-dimensional or a single column, got shape {y.shape}")
+
+
 class HMM:
     def alpha2theta(self, param, typeofparams):
         '''
@@ -4061,6 +4085,7 @@ class HMM:
             percentiles = [1e-9] + percentiles + [100]
 
 
+        y = _as_column(y)
         n = len(y)
 
         discreteFam = ['poisson', 'binom', 'geom', 'nbinom']
